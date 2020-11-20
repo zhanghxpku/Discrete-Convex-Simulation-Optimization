@@ -17,11 +17,11 @@ def QuadraticModel(params):
     sigma = params["sigma"] if "sigma" in params else 1
     
     # Generate a L-convex function
-    A = - np.abs(np.random.randn(d,d))
+    A = - np.abs(np.random.randn(d,d)) / N
     A = A + A.T
     
     for i in range(d):
-        A[i,i] = - np.sum(A[i,i+1:i+d]) + np.abs(np.random.randn(1,1))
+        A[i,i] = - np.sum(A[i,i+1:i+d]) + np.abs(np.random.randn(1,1)) / N
     
     b = A @ np.random.randint(2,2*N,(d,))
     

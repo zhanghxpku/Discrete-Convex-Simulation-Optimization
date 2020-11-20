@@ -6,3 +6,4 @@ Created on Fri Nov 20 10:30:57 2020
 """
 
 from .adaptive_solver import *
+from .uniform_solver import *
