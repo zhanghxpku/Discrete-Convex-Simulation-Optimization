@@ -9,8 +9,10 @@ The Lovasz extension
 
 import numpy as np
 
-# Compute the Lovasz extension and its subgradient at point x
 def Lovasz(F,x,params):
+    """
+    Compute the Lovasz extension and its subgradient at point x.
+    """
     
     # Retrieve parameters
     d = params["d"] if "d" in params else 1
