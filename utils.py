@@ -3,10 +3,9 @@
 Created on Thu Nov 19 22:27:43 2020
 
 @author: haixiang_zhang
+
+Functions for general purposes, e.g., the Lovasz extension
 """
-
-# Functions for general purposes, e.g., the Lovasz extension
-
 
 import math
 import numpy as np
