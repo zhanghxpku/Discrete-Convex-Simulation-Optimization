@@ -17,9 +17,11 @@ def AdaptiveSolver(F,params):
     """
     
     # Retrieve parameters
-    d = 1 # Dimension must be 1
+    if "d" in params and params["d"] != 1:
+        print("Adaptive sampling only works for one-dim problems.")
+        return None
     N = params["N"] if "N" in params else 2
-    sigma = params["sigma"] if "sigma" in params else 1
+    # sigma = params["sigma"] if "sigma" in params else 1
     eps = params["eps"] if "eps" in params else 1e-1
     delta = params["delta"] if "delta" in params else 1e-6
     
@@ -64,6 +66,8 @@ def AdaptiveSolver(F,params):
         else:
             L, U = N_1, N_2
         
+        # print(L,U)
+        
     # Solve the sub-problem with 3 points
     hat_F = np.zeros((U-L+1,))
     # Upper bound on samples needed
@@ -81,9 +85,12 @@ def AdaptiveSolver(F,params):
         CI = ConfidenceInterval(delta/2/T_max,params,i+1)
         # Block points with large empirical means
         blocked[ hat_F - np.min(hat_F) > 2 * CI ] = 1
-        # Return the point with the minimal empirical mean
+        # Only one point left
         if np.sum(blocked) == U - L:
-            return np.argmin(hat_F)
+            break
+
+    # Return the point with the minimal empirical mean
+    return np.argmin(hat_F) + L
     
     
     

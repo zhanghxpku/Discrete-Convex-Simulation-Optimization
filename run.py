@@ -6,11 +6,12 @@ Created on Sun Nov  1 19:26:17 2020
 """
 
 import numpy as np
-np.random.seed(11)
+np.random.seed(101)
 import matplotlib.pyplot as plt
 
 import models
 import utils
+import solvers
 
 # Set parameters
 params = {}
@@ -28,20 +29,18 @@ params["sigma"] = 1 # sub-Gaussian parameter
 model = models.quadratic_model.QuadraticModel(params)
 
 
-
-
-# The optimal solution
-# x_opt = sgd_solver(d,N,f,L)
-
-# Optimization ##########################################################
-
-
-# x_ssgd = ssgd_solver(d,N,f,F,L,eps,delta)
+# Use adaptive sampling algorithm
+x_opt = solvers.adaptive_solver.AdaptiveSolver(model["F"],params)
 
 
 
+x = np.linspace(1,params["N"],100)
+y = np.zeros((100,))
 
+for i,z in enumerate(x):
+    y[i], _ = utils.lovasz.Lovasz(model["F"],[z],params)
 
+plt.plot(x,y)
 
 
 
