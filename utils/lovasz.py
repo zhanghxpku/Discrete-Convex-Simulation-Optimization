@@ -10,7 +10,11 @@ The Lovasz extension
 import numpy as np
 
 # Compute the Lovasz extension and its subgradient at point x
-def Lovasz(d,N,F,x):
+def Lovasz(F,x,params):
+    
+    # Retrieve parameters
+    d = params["d"] if "d" in params else 1
+    N = params["N"] if "N" in params else 2
     
     # Round x to an integral point
     x_int = np.floor(x)

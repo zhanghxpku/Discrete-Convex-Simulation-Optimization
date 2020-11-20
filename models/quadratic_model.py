@@ -12,20 +12,9 @@ import numpy as np
 def QuadraticModel(params):
     
     # Retrieve parameters
-    if "d" in params:
-        d = params["d"]
-    else:
-        d = 1
-
-    if "N" in params:
-        N = params["N"]
-    else:
-        N = 2
-
-    if "sigma" in params:
-        sigma = params["sigma"]
-    else:
-        sigma = 1
+    d = params["d"] if "d" in params else 1
+    N = params["N"] if "N" in params else 2
+    sigma = params["sigma"] if "sigma" in params else 1
     
     # Generate a L-convex function
     A = - np.abs(np.random.randn(d,d))
