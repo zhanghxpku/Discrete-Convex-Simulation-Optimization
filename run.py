@@ -9,7 +9,10 @@ import numpy as np
 np.random.seed(11)
 import matplotlib.pyplot as plt
 
-from gradient_descent import *
+import models
+import utils
+
+# from gradient_descent import *
 
 # Dimension and scale
 d = 10
@@ -39,7 +42,7 @@ F = lambda x: f(x) + np.random.randn()
 eps = 1e0
 delta = 1e-6
 
-x_ssgd = ssgd_solver(d,N,f,F,L,eps,delta)
+# x_ssgd = ssgd_solver(d,N,f,F,L,eps,delta)
 
 
 

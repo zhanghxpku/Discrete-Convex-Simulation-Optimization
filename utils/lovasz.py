@@ -4,14 +4,13 @@ Created on Thu Nov 19 22:27:43 2020
 
 @author: haixiang_zhang
 
-Functions for general purposes, e.g., the Lovasz extension
+The Lovasz extension
 """
 
-import math
 import numpy as np
 
 # Compute the Lovasz extension and its subgradient at point x
-def lovasz(d,N,F,x):
+def Lovasz(d,N,F,x):
     
     # Round x to an integral point
     x_int = np.floor(x)

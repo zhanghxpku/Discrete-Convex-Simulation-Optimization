@@ -9,7 +9,7 @@ Generate qurdratic L-convex examples.
 
 import numpy as np
 
-def quad_model(params):
+def QuadraticModel(params):
     
     # Retrieve parameters
     if "d" in params:
