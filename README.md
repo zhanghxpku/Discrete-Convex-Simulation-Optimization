@@ -1,6 +1,7 @@
 # Discrete-Convex-Simulation-Optimization
 
-- One-dimensional algorithms
+## One-dimensional algorithms
 
--- Adaptive sampling algorithm
--- Uniform sampling algorithm
+- Adaptive sampling algorithm
+
+- Uniform sampling algorithm
