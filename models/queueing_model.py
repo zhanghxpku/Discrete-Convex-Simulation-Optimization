@@ -43,8 +43,8 @@ def QueueModel(params):
     service_2 = lambda: stats.gamma.rvs(a,scale=scale)
     
     # The total waiting time
-    F = lambda x: SingleQueue(x-1,lambda_1,max_1,service_1,params)\
-                  + SingleQueue(N-x,lambda_2,max_2,service_2,params)
+    F = lambda x: SingleQueue(x[0],lambda_1,max_1,service_1,params)\
+                  + SingleQueue(N+1-x[0],lambda_2,max_2,service_2,params)
     
     return {"F":F}
 
@@ -64,12 +64,20 @@ def SingleQueue(num_server,intensity,max_rate,service_t,params):
     t = t[ stats.uniform.rvs(0,max_rate,n) < intensity(t) ]
     
     # The finishing time of each server
-    finish_time = np.zeros((num_server,))
+    finish_time = np.zeros((int(num_server),))
     # Total waiting time
     wait_time = 0
     
     for i in t:
-        
+        # Find the earliest finishing time
+        next_server = np.argmin(finish_time)
+        finish_min = finish_time[next_server]
+        # Update waiting time
+        wait_time += max(finish_min - i, 0)
+        # Update finishing time
+        finish_time[next_server] += service_t()
+    
+    return wait_time
     
     
     
