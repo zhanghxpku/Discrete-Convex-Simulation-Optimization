@@ -11,27 +11,11 @@ from scipy import stats
 
 def QueueModel(params):
     """
-    Generate a queueing model with two queues
+    Generate the objective function
     """
     
-    # Retrieve parameters
-    N = params["N"] if "N" in params else 2
-    
-    # Generate intensity functions
-    X = stats.uniform.rvs(0.75,1.25)
-    Y = stats.uniform.rvs(0.75,1.25)
-    Z = stats.uniform.rvs(-0.5,0.5)
-    Gamma_1 = X + Z
-    Gamma_2 = Y - Z
-    lambda_1 = lambda t: Gamma_1 * ( 300 + 100 * np.sin(0.3*t) )
-    lambda_2 = lambda t: Gamma_2 * ( 500 + 200 * np.sin(0.2*t) )
-    
-    # Maximal rates
-    max_1 = 400 * Gamma_1
-    max_2 = 700 * Gamma_2
-    
     # Service time
-    mean = (0.1,0.15)
+    mean = (0.5,0.15)
     var = (0.1,0.1)
     # Compute the parameters of log-normal dist
     s = np.sqrt(np.log( (1 + np.sqrt(1 + 4*var[0])) / 2))
@@ -41,12 +25,36 @@ def QueueModel(params):
     scale = var[1] / mean[1]
     a = mean[1] / scale
     service_2 = lambda: stats.gamma.rvs(a,scale=scale)
+    service = (service_1,service_2)
+    
+    return {"F": lambda x: WaitingTime(x,service,params)}
+
+def WaitingTime(x,service,params):
+    """
+    Compute the waiting time of two queues
+    """
+    
+    # Retrieve parameters
+    N = params["N"] if "N" in params else 2
+    
+    # Parameters
+    X = stats.uniform.rvs(0.75,0.5)
+    Y = stats.uniform.rvs(0.75,0.5)
+    Z = stats.uniform.rvs(-0.5,1)
+    Gamma_1 = X + Z
+    Gamma_2 = Y - Z
+    
+    # Generate intensity functions
+    lambda_1 = lambda t: Gamma_1 * ( 300 + 100 * np.sin(0.3*t) )
+    lambda_2 = lambda t: Gamma_2 * ( 500 + 200 * np.sin(0.2*t) )
+    
+    # Maximal rates
+    max_1 = 400 * Gamma_1
+    max_2 = 700 * Gamma_2
     
     # The total waiting time
-    F = lambda x: SingleQueue(x[0],lambda_1,max_1,service_1,params)\
-                  + SingleQueue(N+1-x[0],lambda_2,max_2,service_2,params)
-    
-    return {"F":F}
+    return SingleQueue(x[0],lambda_1,max_1,service[0],params)\
+                   + SingleQueue(N+1-x[0],lambda_2,max_2,service[1],params)
 
 def SingleQueue(num_server,intensity,max_rate,service_t,params):
     """
@@ -61,7 +69,7 @@ def SingleQueue(num_server,intensity,max_rate,service_t,params):
     # Arrival times
     t = stats.uniform.rvs(0,T,n)
     # Thining
-    t = t[ stats.uniform.rvs(0,max_rate,n) < intensity(t) ]
+    t = t[ stats.uniform.rvs(0,1,n) < intensity(t) / max_rate ]
     
     # The finishing time of each server
     finish_time = np.zeros((int(num_server),))
@@ -79,24 +87,4 @@ def SingleQueue(num_server,intensity,max_rate,service_t,params):
     
     return wait_time
     
-    
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

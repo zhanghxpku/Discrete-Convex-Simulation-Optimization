@@ -29,27 +29,28 @@ def UniformSolver(F,params):
     S = np.linspace(1,N,N,dtype=np.int16)
     # Total iterations
     T_max = N
-    # # Initial step size
-    # step = 1
+    # Initialize samples
+    cur_samples = 0
+    # Empirical mean
+    hat_F = np.zeros(S.shape)
     
     while S.shape[0] > 2:
         
         # Upper bound on samples needed (devide 80 to ensure correctness)
         num_samples = RequiredSamples(delta/2/T_max,S.shape[0]*eps/8,
                                       params)
-        # Empirical mean
-        hat_F = np.zeros(S.shape)
-        
         # Simulation
-        for i in range(num_samples):
+        for i in range(num_samples - cur_samples):
             for j in range(S.shape[0]):
-                hat_F[j] = ( hat_F[j] * i + F([S[j]]) ) / (i + 1)
+                hat_F[j] = (hat_F[j] * (i + cur_samples) + F([S[j]]))\
+                            / (cur_samples + i + 1)
         
             # Check conditions
-            CI = ConfidenceInterval(delta/2/T_max,params,i+1)
+            CI = ConfidenceInterval(delta/2/T_max,params,cur_samples+i+1)
             
             # Condition (i)
             if np.max(hat_F) - np.min(hat_F) > 2 * CI:
+                cur_samples += i
                 break
         
         # Condition (i)
@@ -71,16 +72,20 @@ def UniformSolver(F,params):
                 else:
                     i_right += 1
             
-            # print(i_left,i_min,i_right,S.shape[0],CI)
-            
             # Update S
             S = S[ i_left+1 : i_right ]
+            # Update empirical mean
+            hat_F = hat_F[ i_left+1 : i_right ]
             
         # Condition (ii)
         else:
+            cur_samples = num_samples
+            # Update S
             S = np.array([ S[j] for j in range(0,S.shape[0],2) ])
+            # Update empirical mean
+            hat_F = np.array([ hat_F[j] for j in range(0,S.shape[0],2) ])
         
-        # print(S)
+        print(S)
     
     # If S is a singleton
     if S.shape[0] == 1:
@@ -92,12 +97,13 @@ def UniformSolver(F,params):
     num_samples = RequiredSamples(delta/2/T_max,eps/4,params)
     
     # Simulation
-    for i in range(num_samples):
+    for i in range(num_samples - cur_samples):
         for j in range(2):
-            hat_F[j] = ( hat_F[j] * i + F([S[j]]) ) / (i + 1)
+            hat_F[j] = ( hat_F[j] * (cur_samples+i) + F([S[j]]) )\
+                        / (cur_samples + i + 1)
         
         # Check confidence interval
-        CI = ConfidenceInterval(delta/2/T_max,params,i+1)
+        CI = ConfidenceInterval(delta/2/T_max,params,cur_samples+i+1)
         # Differentiable
         if np.max(hat_F) - np.min(hat_F) > 2 * CI:
             break

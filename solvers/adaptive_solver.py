@@ -66,7 +66,7 @@ def AdaptiveSolver(F,params):
         else:
             L, U = N_1, N_2
         
-        # print(L,U)
+        print(L,U)
         
     # Solve the sub-problem with 3 points
     hat_F = np.zeros((U-L+1,))
@@ -85,6 +85,7 @@ def AdaptiveSolver(F,params):
         CI = ConfidenceInterval(delta/2/T_max,params,i+1)
         # Block points with large empirical means
         blocked[ hat_F - np.min(hat_F) > 2 * CI ] = 1
+        # print(hat_F)
         # Only one point left
         if np.sum(blocked) == U - L:
             break
