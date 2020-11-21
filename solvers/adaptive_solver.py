@@ -9,6 +9,7 @@ Adaptive sampling algorithm for one-dim problems
 
 import math
 import numpy as np
+import time
 from utils.subgaussian import RequiredSamples, ConfidenceInterval
 
 def AdaptiveSolver(F,params):
@@ -29,6 +30,11 @@ def AdaptiveSolver(F,params):
     L, U = 1, N
     # Total iterations
     T_max = math.log(N,1.5) + 2
+    
+    # Start timing
+    start_time = time.time()
+    # Count simulation runs
+    total_samples = 0
     
     while U - L > 2:
         # 3-quantiles
@@ -52,10 +58,16 @@ def AdaptiveSolver(F,params):
             
             # Condition (i)
             if hat_F_1 - hat_F_2 > 2 * CI:
+                # Update total simulations
+                total_samples += i
                 break
             # Condition (ii)
             elif hat_F_1 - hat_F_2 < -2 * CI:
+                # Update total simulations
+                total_samples += i
                 break
+        
+        
         
         # Condition (i)
         if hat_F_1 - hat_F_2 > 2 * CI:
@@ -65,6 +77,8 @@ def AdaptiveSolver(F,params):
             U = N_2
         # Condition (iii)
         else:
+            # Update total simulations
+            total_samples += num_samples
             L, U = N_1, N_2
         
         print(L,U)
@@ -81,6 +95,8 @@ def AdaptiveSolver(F,params):
         for j in range(U-L+1):
             if blocked[j] == 0:
                 hat_F[j] = ( hat_F[j] * i + F([L+j]) ) / (i + 1)
+            # Update total samples
+            total_samples += np.sum(1 - blocked)
         
         # Check confidence interval
         CI = ConfidenceInterval(delta/2/T_max,params,i+1)
@@ -90,9 +106,13 @@ def AdaptiveSolver(F,params):
         # Only one point left
         if np.sum(blocked) == U - L:
             break
-
+    
+    # Stop timing
+    stop_time = time.time()
     # Return the point with the minimal empirical mean
-    return np.argmin(hat_F) + L
+    x_opt = np.argmin(hat_F) + L
+    
+    return {"x_opt":x_opt, "time":stop_time-start_time, "total":total_samples}
     
     
     

@@ -9,6 +9,7 @@ Uniform sampling algorithm for one-dim problems
 
 import math
 import numpy as np
+import time
 from utils.subgaussian import RequiredSamples, ConfidenceInterval
 
 def UniformSolver(F,params):
@@ -33,6 +34,11 @@ def UniformSolver(F,params):
     cur_samples = 0
     # Empirical mean
     hat_F = np.zeros(S.shape)
+    
+    # Start timing
+    start_time = time.time()
+    # Count simulation runs
+    total_samples = 0
     
     while S.shape[0] > 2:
         
@@ -73,14 +79,18 @@ def UniformSolver(F,params):
                 else:
                     i_right += 1
             
+            # Update total samples
+            total_samples += cur_samples * (S.shape[0] - i_right + i_left + 1)
             # Update S
             S = S[ i_left+1 : i_right ]
             # Update empirical mean
             hat_F = hat_F[ i_left+1 : i_right ]
-            
+
         # Condition (ii)
         else:
             cur_samples = num_samples
+            # Update total samples
+            total_samples += cur_samples * math.floor(S.shape[0] / 2)
             # Update S
             S = np.array([ S[j] for j in range(0,S.shape[0],2) ])
             # Update empirical mean
@@ -90,24 +100,31 @@ def UniformSolver(F,params):
     
     # If S is a singleton
     if S.shape[0] == 1:
-        return S[0]
-    
+        x_opt = S[0]
     # Solve the sub-problem with 2 points
-    # Upper bound on samples needed
-    num_samples = RequiredSamples(delta/2/T_max,eps/4,params)
-    
-    # Simulation
-    for i in range(num_samples - cur_samples):
-        for j in range(2):
-            hat_F[j] = ( hat_F[j] * (cur_samples+i) + F([S[j]]) )\
-                        / (cur_samples + i + 1)
+    else:
+        # Upper bound on samples needed
+        num_samples = RequiredSamples(delta/2/T_max,eps/4,params)
         
-        # Check confidence interval
-        CI = ConfidenceInterval(delta/2/T_max,params,cur_samples+i+1)
-        # Differentiable
-        if np.max(hat_F) - np.min(hat_F) > 2 * CI:
-            break
+        # Simulation
+        for i in range(num_samples - cur_samples):
+            for j in range(2):
+                hat_F[j] = ( hat_F[j] * (cur_samples+i) + F([S[j]]) )\
+                            / (cur_samples + i + 1)
+            
+            # Check confidence interval
+            CI = ConfidenceInterval(delta/2/T_max,params,cur_samples+i+1)
+            # Differentiable
+            if np.max(hat_F) - np.min(hat_F) > 2 * CI:
+                break
+        
+        # Update total simulations
+        total_samples += 2 * cur_samples
+        # Return the point with the minimal empirical mean
+        x_opt = S[np.argmin(hat_F)]
+    
+    # Stop timing
+    stop_time = time.time()
 
-    # Return the point with the minimal empirical mean
-    return S[np.argmin(hat_F)]
+    return {"x_opt":x_opt, "time":stop_time-start_time, "total":total_samples}
 

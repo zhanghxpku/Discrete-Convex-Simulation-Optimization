@@ -51,15 +51,12 @@ else:
     
     plt.plot(x,y)
 
-# # Use adaptive sampling algorithm
-# time_start = time.time()
-# # x_ada = solvers.adaptive_solver.AdaptiveSolver(model["F"],params)
-# # print(time.time() - time_start)
-# # Use uniform sampling algorithm
-# x_uni = solvers.uniform_solver.UniformSolver(model["F"],params)
-# print(time.time() - time_start)
-
-# print(x_ada,x_uni)
+# Use adaptive sampling algorithm
+output_ada = solvers.adaptive_solver.AdaptiveSolver(model["F"],params)
+print(output_ada)
+# Use uniform sampling algorithm
+output_uni = solvers.uniform_solver.UniformSolver(model["F"],params)
+print(output_uni)
 
 
 
