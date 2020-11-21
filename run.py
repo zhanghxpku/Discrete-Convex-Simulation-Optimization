@@ -26,17 +26,18 @@ params["eps"] = 1e0
 params["delta"] = 1e-6
 
 # Generate the model
-params["sigma"] = 1 # sub-Gaussian parameter
+params["sigma"] = 10 # sub-Gaussian parameter
 model = models.quadratic_model.QuadraticModel(params)
 
-# Plot the function
-x = np.linspace(1,params["N"],1000)
-y = np.zeros((1000,))
-
-for i,z in enumerate(x):
-    y[i], _ = utils.lovasz.Lovasz(model["f"],[z],params)
-
-plt.plot(x,y)
+if "f" in model:
+    # Plot the function
+    x = np.linspace(1,params["N"],1000)
+    y = np.zeros((1000,))
+    
+    for i,z in enumerate(x):
+        y[i], _ = utils.lovasz.Lovasz(model["f"],[z],params)
+    
+    plt.plot(x,y)
 
 # # Use adaptive sampling algorithm
 time_start = time.time()
