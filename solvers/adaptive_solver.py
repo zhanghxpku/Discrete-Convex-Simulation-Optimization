@@ -37,6 +37,7 @@ def AdaptiveSolver(F,params):
         
         # Upper bound on samples needed
         num_samples = RequiredSamples(delta/2/T_max,eps/8,params)
+        print(num_samples)
         # Empirical mean
         hat_F_1 = 0
         hat_F_2 = 0

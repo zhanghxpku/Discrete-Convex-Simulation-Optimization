@@ -37,8 +37,9 @@ def UniformSolver(F,params):
     while S.shape[0] > 2:
         
         # Upper bound on samples needed (devide 80 to ensure correctness)
-        num_samples = RequiredSamples(delta/2/T_max,S.shape[0]*eps/8,
+        num_samples = RequiredSamples(delta/2/T_max,S.shape[0]*eps/20,
                                       params)
+        print(num_samples)
         # Simulation
         for i in range(num_samples - cur_samples):
             for j in range(S.shape[0]):
@@ -83,16 +84,15 @@ def UniformSolver(F,params):
             # Update S
             S = np.array([ S[j] for j in range(0,S.shape[0],2) ])
             # Update empirical mean
-            hat_F = np.array([ hat_F[j] for j in range(0,S.shape[0],2) ])
+            hat_F = np.array([ hat_F[j] for j in range(0,hat_F.shape[0],2) ])
         
-        print(S)
+        print(S,hat_F)
     
     # If S is a singleton
     if S.shape[0] == 1:
         return S[0]
     
     # Solve the sub-problem with 2 points
-    hat_F = np.zeros((2,))
     # Upper bound on samples needed
     num_samples = RequiredSamples(delta/2/T_max,eps/4,params)
     
