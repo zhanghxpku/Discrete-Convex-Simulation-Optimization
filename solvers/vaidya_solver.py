@@ -12,6 +12,9 @@ import time
 from utils.lovasz import Lovasz, Round, SO
 from utils.subgaussian import RequiredSamples
 
+def VaidyaSolver(F,params):
+    """
+    Vaidya's cutting-plane method for multi-dim problems.
+    """
 
-
-
+    
