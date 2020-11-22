@@ -18,17 +18,17 @@ import solvers
 params = {}
 
 # Dimension and scale
-params["d"] = 1
-params["N"] = 100
+params["d"] = 10
+params["N"] = 30
 
 # Optimality criteria
-params["eps"] = 1e4
+params["eps"] = 2e-1
 params["delta"] = 1e-6
 
 # Generate the model
-params["sigma"] = 1e8 # sub-Gaussian parameter
-model = models.queueing_model.QueueModel(params)
-# model = models.quadratic_model.QuadraticModel(params)
+params["sigma"] = 1e0 # sub-Gaussian parameter
+# model = models.queueing_model.QueueModel(params)
+model = models.quadratic_model.QuadraticModel(params)
 
 if "L" in model:
     params["L"] = model["L"]

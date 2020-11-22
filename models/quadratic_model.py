@@ -19,17 +19,18 @@ def QuadraticModel(params):
     # Generate a L-convex function
     A = - np.abs(np.random.randn(d,d)) / N
     A = A + A.T
-    
+
     for i in range(d):
-        A[i,i] = - np.sum(A[i,i+1:i+d]) + np.abs(np.random.randn(1,1)) / N
+        A[i,i] = - np.sum(A[i,i+1:i+d]) + np.abs(np.random.randn(1,1))
     
     b = A @ np.random.randint(2,2*N,(d,))
+    # b = np.zeros((d,))
     
-    # ell_inf Lipschitz constant
+    # l_inf Lipschitz constant
     L = 2 * N * np.linalg.norm(A,np.inf) + np.linalg.norm(b,np.inf)
     
     # Objective function
-    f = lambda x: np.sum( x * (A @ x) ) - np.sum(b * x)
+    f = lambda x: np.sum( x* (A @ x) ) - np.sum( b * x )
     F = lambda x: f(x) + sigma * np.random.randn()
     
     # Return

@@ -3,6 +3,8 @@
 Created on Sat Nov 21 14:57:17 2020
 
 @author: haixiang_zhang
+
+Truncated subgradient descent method.
 """
 
 import math
@@ -32,7 +34,7 @@ def GradientSolver(F,params):
     f_old = 0
     f_new = 0
     # Check stopping criterion every 1000 iterations
-    interval = RequiredSamples(delta/2,eps/2,params)
+    interval = RequiredSamples(delta/2,eps/5,params)
     print(interval)
     
     # Iterate numbers and step size
@@ -81,6 +83,7 @@ def GradientSolver(F,params):
             f, _ = Lovasz(F,x_avg,params)
             print(f_new, hat_F, f)
         
+        # Early stopping
         if t % interval == interval - 1 and t >= interval:
             # Decay is not sufficient
             if f_new - f_old >= 0:
