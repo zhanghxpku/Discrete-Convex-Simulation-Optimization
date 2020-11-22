@@ -45,7 +45,7 @@ def UniformSolver(F,params):
         # Upper bound on samples needed (devide 80 to ensure correctness)
         num_samples = RequiredSamples(delta/2/T_max,S.shape[0]*eps/20,
                                       params)
-        print(num_samples)
+        print(cur_samples,num_samples)
         # Simulation
         for i in range(num_samples - cur_samples):
             for j in range(S.shape[0]):
@@ -57,7 +57,7 @@ def UniformSolver(F,params):
             
             # Condition (i)
             if np.max(hat_F) - np.min(hat_F) > 2 * CI:
-                cur_samples += i
+                cur_samples += (i + 1)
                 break
         
         # Condition (i)

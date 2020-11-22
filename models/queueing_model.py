@@ -8,6 +8,7 @@ Generate two queues under resource constraints examples.
 
 import numpy as np
 from scipy import stats
+# import matplotlib.pyplot as plt
 
 def QueueModel(params):
     """
@@ -72,13 +73,16 @@ def SingleQueue(num_server,intensity,max_rate,service_t,params):
     t = t[ stats.uniform.rvs(0,1,n) < intensity(t) / max_rate ]
     # Sorting
     t = np.sort(t)
+    print(t.shape)
     
     # The finishing time of each server
     finish_time = np.zeros((int(num_server),))
     # Total waiting time
     wait_time = 0
     
-    for i in t:
+    # p = np.zeros(t.shape)
+    
+    for j,i in enumerate(t):
         # Find the earliest finishing time
         next_server = np.argmin(finish_time)
         finish_min = finish_time[next_server]
@@ -86,6 +90,11 @@ def SingleQueue(num_server,intensity,max_rate,service_t,params):
         wait_time += max(finish_min - i, 0)
         # Update finishing time
         finish_time[next_server] += service_t()
+        # p[j] = max(finish_min - i, 0)
+    
+    # plt.figure()
+    # plt.plot(t,p)
+    # plt.savefig(str(t.shape[0]) + ".png")
     
     return wait_time
     

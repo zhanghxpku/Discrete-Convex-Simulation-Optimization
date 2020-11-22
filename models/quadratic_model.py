@@ -26,7 +26,7 @@ def QuadraticModel(params):
     b = A @ np.random.randint(2,2*N,(d,))
     
     # ell_inf Lipschitz constant
-    L = 2 * np.sqrt(d) * N * np.linalg.norm(A,2) + np.linalg.norm(b)
+    L = 2 * N * np.linalg.norm(A,np.inf) + np.linalg.norm(b,np.inf)
     
     # Objective function
     f = lambda x: np.sum( x * (A @ x) ) - np.sum(b * x)
