@@ -49,7 +49,7 @@ def GradientSolver(F,params):
         
         # Compute subgradient
         _, sub_grad = Lovasz(F,x,params)
-        total_samples += 2 * d
+        total_samples += (2*d)
         
         # Truncate subgradient
         sub_grad = np.clip(sub_grad, -M, M)

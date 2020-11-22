@@ -81,10 +81,10 @@ def AdaptiveSolver(F,params):
         
         print(L,U)
         
-    # Solve the sub-problem with 3 points
+    # Solve the sub-problem
     hat_F = np.zeros((U-L+1,))
     # Upper bound on samples needed
-    num_samples = RequiredSamples(delta/2/T_max,eps/2,params)
+    num_samples = RequiredSamples(delta/2/T_max,eps/4,params)
     # Stop simumating if already too large
     blocked = np.zeros((U-L+1,))
     
@@ -100,6 +100,7 @@ def AdaptiveSolver(F,params):
         CI = ConfidenceInterval(delta/2/T_max,params,i+1)
         # Block points with large empirical means
         blocked[ hat_F - np.min(hat_F) > 2 * CI ] = 1
+        hat_F[ hat_F - np.min(hat_F) > 2 * CI ] = np.inf
         # print(hat_F)
         # Only one point left
         if np.sum(blocked) == U - L:

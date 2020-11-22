@@ -40,7 +40,7 @@ def UniformSolver(F,params):
     # Count simulation runs
     total_samples = 0
     
-    while S.shape[0] > 2:
+    while S.shape[0] > 5:
         
         # Upper bound on samples needed (devide 80 to ensure correctness)
         num_samples = RequiredSamples(delta/2/T_max,S.shape[0]*eps/20,
@@ -98,28 +98,40 @@ def UniformSolver(F,params):
         
         print(S,hat_F)
     
+    # Update total simulations
+    total_samples += (cur_samples * S.shape[0])
+    
     # If S is a singleton
     if S.shape[0] == 1:
         x_opt = S[0]
-    # Solve the sub-problem with 2 points
+    # Solve the sub-problem
     else:
+        # Number of points
+        num = S.shape[0]
         # Upper bound on samples needed
         num_samples = RequiredSamples(delta/2/T_max,eps/4,params)
+        # Stop simumating if already too large
+        blocked = np.zeros((num,))
         
         # Simulation
         for i in range(num_samples - cur_samples):
-            for j in range(2):
-                hat_F[j] = ( hat_F[j] * (cur_samples+i) + F([S[j]]) )\
-                            / (cur_samples + i + 1)
+            for j in range(num):
+                if blocked[j] == 0:
+                    hat_F[j] = ( hat_F[j] * (cur_samples+i) + F([S[j]]) )\
+                                / (cur_samples + i + 1)
+                # Update total samples
+                total_samples += np.sum(1 - blocked)
             
             # Check confidence interval
             CI = ConfidenceInterval(delta/2/T_max,params,cur_samples+i+1)
-            # Differentiable
-            if np.max(hat_F) - np.min(hat_F) > 2 * CI:
+            # Block points with large empirical means
+            blocked[ hat_F - np.min(hat_F) > 2 * CI ] = 1
+            hat_F[ hat_F - np.min(hat_F) > 2 * CI ] = np.inf
+            # print(hat_F)
+            # Only one point left
+            if np.sum(blocked) == (num - 1):
                 break
-        
-        # Update total simulations
-        total_samples += 2 * cur_samples
+    
         # Return the point with the minimal empirical mean
         x_opt = S[np.argmin(hat_F)]
     

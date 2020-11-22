@@ -22,48 +22,48 @@ params["d"] = 1
 params["N"] = 100
 
 # Optimality criteria
-params["eps"] = 5e-1
+params["eps"] = 1e4
 params["delta"] = 1e-6
 
 # Generate the model
-params["sigma"] = 1e0 # sub-Gaussian parameter
+params["sigma"] = 1e8 # sub-Gaussian parameter
 model = models.queueing_model.QueueModel(params)
 # model = models.quadratic_model.QuadraticModel(params)
 
 if "L" in model:
     params["L"] = model["L"]
 
-if "f" in model:
-    # Plot the function
-    x = np.linspace(1,params["N"],params["N"])
-    y = np.zeros((params["N"],))
+# if "f" in model:
+#     # Plot the function
+#     x = np.linspace(1,params["N"],params["N"])
+#     y = np.zeros((params["N"],))
     
-    for i,z in enumerate(x):
-        y[i], _ = utils.lovasz.Lovasz(model["f"],[z],params)
+#     for i,z in enumerate(x):
+#         y[i], _ = model["f"]([z])
     
-    plt.plot(x,y)
-else:
-    # Plot the function
-    x = np.linspace(1,params["N"],params["N"])
-    y = np.zeros((params["N"],))
+#     plt.plot(x,y)
+# else:
+#     # Plot the function
+#     x = np.linspace(1,params["N"],params["N"])
+#     y = np.zeros((params["N"],))
     
-    for i,z in enumerate(x):
-        for _ in range(50):
-            y[i] += model["F"]([z])
-    y /= 50
+#     for i,z in enumerate(x):
+#         for _ in range(50):
+#             y[i] += model["F"]([z])
+#     y /= 50
     
-    plt.plot(x,y)
+#     plt.plot(x,y)
 
 # # Use adaptive sampling algorithm
 # output_ada = solvers.adaptive_solver.AdaptiveSolver(model["F"],params)
 # print(output_ada)
-# # Use uniform sampling algorithm
-# output_uni = solvers.uniform_solver.UniformSolver(model["F"],params)
-# print(output_uni)
+# Use uniform sampling algorithm
+output_uni = solvers.uniform_solver.UniformSolver(model["F"],params)
+print(output_uni)
 
-# Use truncated subgradient descent method
-output_grad = solvers.gradient_solver.GradientSolver(model["F"],params)
-print(output_grad)
+# # Use truncated subgradient descent method
+# output_grad = solvers.gradient_solver.GradientSolver(model["F"],params)
+# print(output_grad)
 
 
 
