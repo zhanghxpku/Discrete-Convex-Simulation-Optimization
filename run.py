@@ -39,7 +39,7 @@ if "L" in model:
 #     y = np.zeros((params["N"],))
     
 #     for i,z in enumerate(x):
-#         y[i], _ = model["f"]([z])
+#         y[i] = model["f"]([z])
     
 #     plt.plot(x,y)
 # else:
