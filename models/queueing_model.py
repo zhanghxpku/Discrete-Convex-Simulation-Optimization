@@ -73,7 +73,7 @@ def SingleQueue(num_server,intensity,max_rate,service_t,params):
     t = t[ stats.uniform.rvs(0,1,n) < intensity(t) / max_rate ]
     # Sorting
     t = np.sort(t)
-    print(t.shape)
+    # print(t.shape)
     
     # The finishing time of each server
     finish_time = np.zeros((int(num_server),))

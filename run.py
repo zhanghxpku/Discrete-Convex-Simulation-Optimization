@@ -22,38 +22,37 @@ params["d"] = 1
 params["N"] = 100
 
 # Optimality criteria
-params["eps"] = 1e4
+params["eps"] = 5e-1
 params["delta"] = 1e-6
 
 # Generate the model
-params["sigma"] = 1e1 # sub-Gaussian parameter
-# model = models.queueing_model.QueueModel(params)
-model = models.quadratic_model.QuadraticModel(params)
+params["sigma"] = 1e0 # sub-Gaussian parameter
+model = models.queueing_model.QueueModel(params)
+# model = models.quadratic_model.QuadraticModel(params)
 
 if "L" in model:
     params["L"] = model["L"]
 
-# if "f" in model:
-#     # Plot the function
-#     x = np.linspace(1,params["N"],1000)
-#     y = np.zeros((1000,))
+if "f" in model:
+    # Plot the function
+    x = np.linspace(1,params["N"],params["N"])
+    y = np.zeros((params["N"],))
     
-#     for i,z in enumerate(x):
-#         y[i], _ = utils.lovasz.Lovasz(model["f"],[z],params)
+    for i,z in enumerate(x):
+        y[i], _ = utils.lovasz.Lovasz(model["f"],[z],params)
     
-#     plt.plot(x,y)
-# else:
-#     # Plot the function
-#     x = np.linspace(1,params["N"],params["N"])
-#     y = np.zeros((params["N"],))
+    plt.plot(x,y)
+else:
+    # Plot the function
+    x = np.linspace(1,params["N"],params["N"])
+    y = np.zeros((params["N"],))
     
-#     for i,z in enumerate(x):
-#         for _ in range(50):
-#             y[i] += model["F"]([z])
+    for i,z in enumerate(x):
+        for _ in range(50):
+            y[i] += model["F"]([z])
+    y /= 50
     
-#     y /= 50
-    
-#     plt.plot(x,y)
+    plt.plot(x,y)
 
 # # Use adaptive sampling algorithm
 # output_ada = solvers.adaptive_solver.AdaptiveSolver(model["F"],params)
@@ -62,6 +61,9 @@ if "L" in model:
 # output_uni = solvers.uniform_solver.UniformSolver(model["F"],params)
 # print(output_uni)
 
+# Use truncated subgradient descent method
+output_grad = solvers.gradient_solver.GradientSolver(model["F"],params)
+print(output_grad)
 
 
 

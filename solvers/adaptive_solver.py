@@ -64,10 +64,8 @@ def AdaptiveSolver(F,params):
             # Condition (ii)
             elif hat_F_1 - hat_F_2 < -2 * CI:
                 # Update total simulations
-                total_samples += i
+                total_samples += (2*i)
                 break
-        
-        
         
         # Condition (i)
         if hat_F_1 - hat_F_2 > 2 * CI:
@@ -78,7 +76,7 @@ def AdaptiveSolver(F,params):
         # Condition (iii)
         else:
             # Update total simulations
-            total_samples += num_samples
+            total_samples += (2*num_samples)
             L, U = N_1, N_2
         
         print(L,U)

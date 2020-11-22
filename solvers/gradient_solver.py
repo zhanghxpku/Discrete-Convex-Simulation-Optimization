@@ -35,7 +35,7 @@ def GradientSolver(F,params):
                        (d**2) * (L**2) / (eps**2),  
                        64*(d**2)*(N**2) / (eps**2) * math.log(sigma*d**2/N**3)
                        ) )
-    M = max(2*sigma * math.sqrt( math.log(4*sigma*d*N*T / eps) ), L) 
+    M = max(2*sigma*math.sqrt(math.log( max(4*sigma*d*N*T / eps, 1) )), L) 
     print(T,M)
     eta =  N / M / np.sqrt( T )
     
