@@ -87,8 +87,8 @@ def Round(F,x,params):
         for j in range(d+1):
             if blocked[j] == 0:
                 hat_F[j] = ( hat_F[j] * i + F(x_nei[j,:]) ) / (i + 1)
-            # Update total samples
-            total_samples += (d + 1 - np.sum(blocked))
+        # Update total samples
+        total_samples += (d + 1 - np.sum(blocked))
         
         # Check confidence interval
         CI = ConfidenceInterval(delta/4,params,i+1)
