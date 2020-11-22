@@ -57,13 +57,13 @@ if "L" in model:
 # # Use adaptive sampling algorithm
 # output_ada = solvers.adaptive_solver.AdaptiveSolver(model["F"],params)
 # print(output_ada)
-# Use uniform sampling algorithm
-output_uni = solvers.uniform_solver.UniformSolver(model["F"],params)
-print(output_uni)
+# # Use uniform sampling algorithm
+# output_uni = solvers.uniform_solver.UniformSolver(model["F"],params)
+# print(output_uni)
 
-# # Use truncated subgradient descent method
-# output_grad = solvers.gradient_solver.GradientSolver(model["F"],params)
-# print(output_grad)
+# Use truncated subgradient descent method
+output_grad = solvers.gradient_solver.GradientSolver(model["F"],params)
+print(output_grad)
 
 
 

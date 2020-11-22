@@ -93,8 +93,8 @@ def AdaptiveSolver(F,params):
         for j in range(U-L+1):
             if blocked[j] == 0:
                 hat_F[j] = ( hat_F[j] * i + F([L+j]) ) / (i + 1)
-            # Update total samples
-            total_samples += np.sum(1 - blocked)
+        # Update total samples
+        total_samples += np.sum(1 - blocked)
         
         # Check confidence interval
         CI = ConfidenceInterval(delta/2/T_max,params,i+1)

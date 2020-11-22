@@ -9,6 +9,7 @@ import math
 import numpy as np
 import time
 from utils.lovasz import Lovasz, Round
+from utils.subgaussian import RequiredSamples
 
 def GradientSolver(F,params):
     """
@@ -27,11 +28,15 @@ def GradientSolver(F,params):
     x = np.floor(np.ones((d,)) * N / 2)
     # The moving average
     x_avg = np.copy(x)
-    # Initial objective function value
-    f_old = F(x)
+    # Comparion of objective function values
+    f_old = 0
+    f_new = 0
+    # Check stopping criterion every 1000 iterations
+    interval = RequiredSamples(delta/2,eps/2,params)
+    print(interval)
     
     # Iterate numbers and step size
-    T = math.ceil( max( 1*d*(N**2)*sigma / (eps**2) * math.log(2/delta),
+    T = math.ceil( max( 64*d*(N**2)*sigma / (eps**2) * math.log(2/delta),
                        (d**2) * (L**2) / (eps**2),  
                        64*(d**2)*(N**2) / (eps**2) * math.log(sigma*d**2/N**3)
                        ) )
@@ -44,11 +49,15 @@ def GradientSolver(F,params):
     # Count simulation runs
     total_samples = 0
     
+    # Weighted average
+    alpha = 0.75
+    weight_cum = 0
+    
     # Truncated subgradient descent
     for t in range(T):
         
         # Compute subgradient
-        _, sub_grad = Lovasz(F,x,params)
+        hat_F, sub_grad = Lovasz(F,x,params)
         total_samples += (2*d)
         
         # Truncate subgradient
@@ -61,22 +70,25 @@ def GradientSolver(F,params):
         x = np.clip(x,1,N)
         
         # Update the moving average
-        x_avg = (x_avg * t + x) / (t + 1)
+        new_weight = weight_cum * (1-alpha) + alpha
+        x_avg = (x_avg * weight_cum * (1-alpha) + x*alpha) / new_weight
+        # Update the function value
+        f_new = (f_new * weight_cum * (1-alpha) + hat_F*alpha) / new_weight
+        # Update the cumulative weight
+        weight_cum = new_weight
         
-        # if np.linalg.norm(sub_grad,np.inf) < tol / N:
-        #     break
+        if t % interval == 0:
+            f, _ = Lovasz(F,x_avg,params)
+            print(f_new, hat_F, f)
         
-        # if t > 10000 and np.linalg.norm(ret - np.round(ret),np.inf) < 1e-1:
-        #     ret = np.round(ret),np.inf
-        #     break
-        
-        # if t % 10000 == 1000:
-        #     f_new, _ = Lovasz(d,N,f,x_avg)
-        #     print(f_new)
-        #     # if f_new > f_old - 0e-6:
-        #     #     break
-        #     # else:
-        #     #     f_old = f_new  
+        if t % interval == interval - 1 and t >= interval:
+            # Decay is not sufficient
+            if f_new - f_old >= 0:
+                break
+
+        if t % interval == interval - 1:
+            # Update f_old and f_new
+            f_old = f_new
     
     # Round to an integral point
     output_round = Round(F,x_avg,params)

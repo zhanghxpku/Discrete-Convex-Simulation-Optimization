@@ -119,8 +119,8 @@ def UniformSolver(F,params):
                 if blocked[j] == 0:
                     hat_F[j] = ( hat_F[j] * (cur_samples+i) + F([S[j]]) )\
                                 / (cur_samples + i + 1)
-                # Update total samples
-                total_samples += np.sum(1 - blocked)
+            # Update total samples
+            total_samples += np.sum(1 - blocked)
             
             # Check confidence interval
             CI = ConfidenceInterval(delta/2/T_max,params,cur_samples+i+1)
