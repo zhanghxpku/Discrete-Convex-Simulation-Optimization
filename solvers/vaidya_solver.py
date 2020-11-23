@@ -27,14 +27,17 @@ def VaidyaSolver(F,params):
     L = params["L"] if "L" in params else 1
     
     # Set parameters
-    p = 1e-4 # eps in paper
+    p = 1e-1 # eps in paper
     q = 1e-3 * p # delta in paper
     
     # Total number of iterations
-    T = d * math.log(d*L*N/eps) / q * 2
+    T = math.ceil(d * math.log(d*L*N/eps) / q * 2)
     # Set of points where SO is called and their empirical means
     S = np.zeros((0,d+1))
     print(T)
+    
+    # Early stopping
+    F_old = np.inf
     
     # Start timing
     start_time = time.time()
@@ -42,8 +45,9 @@ def VaidyaSolver(F,params):
     total_samples = 0
     
     # Initial polytope Ax >= b
-    A = np.diag(np.concatenate([np.ones(d,),-np.ones((d,))]))
-    b = np.concatenate([np.ones(d,),-N * np.ones((d,))])
+    A = np.concatenate( (np.eye(d),-np.eye(d)), axis=0 )
+    b = np.concatenate((np.ones(d,),-N * np.ones((d,))))
+    print(A.shape,b.shape)
     # Initial volumetric center
     z = (N+1)/2 * np.ones((d,))
     # Initial Hessian
@@ -54,12 +58,14 @@ def VaidyaSolver(F,params):
         # Case I
         if np.min(alpha) >= q:
             # Separation oracle
-            so = SO(eps/8,delta/4,params)
-            c = so["hat_grad"]
+            # ti = time.time()
+            so = SO(F,z,eps/4*min(N,t+1),delta/4,params)
+            c = -so["hat_grad"]
             hat_F = so["hat_F"]
-            beta = np.sum(c*z) + math.sqrt( 2*(c.T @ H_inv) @ c\
+            beta = np.sum(c*z) - math.sqrt( 2*(c.T @ H_inv) @ c\
                                            / math.sqrt(p*q) )
-            
+            beta = np.sum(c*z) - 0.1
+            # print(time.time() - ti)
             # Update total samples
             total_samples += so["total"]
             
@@ -67,19 +73,25 @@ def VaidyaSolver(F,params):
             c = np.reshape(c,(1,d))
             A = np.concatenate((A,c), axis=0)
             b = np.concatenate((b,[beta]))
-            
-            # Update matrices
-            H_inv,alpha,nabla,Q = Auxiliary(z,A,b)
-            
+
             # Update S
-            temp = np.concatenate((c,[[hat_F]])) # 1*(d+1) vector
+            temp = np.concatenate((c,[[hat_F]]),axis=1) # 1*(d+1) vector
             S = np.concatenate((S,temp),axis=0)
+            print(hat_F)
             
             # Update volumetric center
             # Number of Newton steps
             num_newton = math.ceil( 30 * math.log( 2 / (q**4.5) ) )
+            # num_newton=1
             for _ in range(num_newton):
+                # Update matrices
+                H_inv,alpha,nabla,Q = Auxiliary(z,A,b)
+                # print(nabla)
                 z -= (0.18 * np.linalg.solve(Q,nabla))
+            # Update matrices
+            H_inv,alpha,nabla,Q = Auxiliary(z,A,b)
+            print(z)
+            
         # Case II
         else:
             # Find the cutting-plane to be removed
@@ -94,7 +106,17 @@ def VaidyaSolver(F,params):
             # Number of Newton steps
             num_newton = math.ceil( 30 * math.log( 4 / (q**3) ) )
             for _ in range(num_newton):
+                # Update matrices
+                H_inv,alpha,nabla,Q = Auxiliary(z,A,b)
                 z -= (0.18 * np.linalg.solve(Q,nabla))
+            # Update matrices
+            H_inv,alpha,nabla,Q = Auxiliary(z,A,b)
+        
+        F_new = np.mean(S[:,-1])
+        if F_new >= F_old:
+            break
+        else:
+            F_old = F_new
     
     # Find the point with minimial empirical mean
     i = np.argmin(S[:,-1])
@@ -127,16 +149,17 @@ def Auxiliary(x,A,b):
     
     # Compute H(x)
     for i in range(m):
-        H_x += u_x[i,:].T @ u_x[i,:]
+        H_x += u_x[i:i+1,:].T @ u_x[i:i+1,:]
     # Inverse of H(x)
-    H_inv = np.linalg.inv(H_x)
+    H_inv = np.linalg.pinv(H_x)
+    # print(H_inv)
     
     # Compute other functions
     for i in range(m):
-        alpha_x[i] = u_x[i,:] @ (H_inv @ u_x[i,:].T)
-        temp = alpha_x[i] * u_x[i,:].T
-        nabla_x -= temp
-        Q_x += temp @ u_x[i,:]
+        alpha_x[i] = u_x[i:i+1,:] @ (H_inv @ u_x[i:i+1,:].T)
+        temp = alpha_x[i] * u_x[i:i+1,:].T
+        nabla_x -= temp[:,0]
+        Q_x += temp @ u_x[i:i+1,:]
     
     return H_inv, alpha_x, nabla_x, Q_x
 

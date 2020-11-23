@@ -18,11 +18,11 @@ import solvers
 params = {}
 
 # Dimension and scale
-params["d"] = 5
+params["d"] = 3
 params["N"] = 10
 
 # Optimality criteria
-params["eps"] = 2e-1
+params["eps"] = 5e-1
 params["delta"] = 1e-6
 
 # Generate the model
