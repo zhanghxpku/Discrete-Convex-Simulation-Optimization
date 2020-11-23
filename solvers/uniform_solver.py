@@ -45,7 +45,7 @@ def UniformSolver(F,params):
         # Upper bound on samples needed (devide 80 to ensure correctness)
         num_samples = RequiredSamples(delta/2/T_max,S.shape[0]*eps/20,
                                       params)
-        # print(cur_samples,num_samples)
+        print(cur_samples,num_samples)
         # Simulation
         for i in range(num_samples - cur_samples):
             for j in range(S.shape[0]):
@@ -96,7 +96,7 @@ def UniformSolver(F,params):
             # Update empirical mean
             hat_F = np.array([ hat_F[j] for j in range(0,hat_F.shape[0],2) ])
         
-        # print(S,hat_F)
+        print(S,hat_F)
     
     # Update total simulations
     total_samples += (cur_samples * S.shape[0])

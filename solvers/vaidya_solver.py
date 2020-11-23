@@ -47,7 +47,7 @@ def VaidyaSolver(F,params):
     # Initial polytope Ax >= b
     A = np.concatenate( (np.eye(d),-np.eye(d)), axis=0 )
     b = np.concatenate((np.ones(d,),-N * np.ones((d,))))
-    print(A.shape,b.shape)
+    # print(A.shape,b.shape)
     # Initial volumetric center
     z = (N+1)/2 * np.ones((d,))
     # Initial Hessian
@@ -112,6 +112,7 @@ def VaidyaSolver(F,params):
             # Update matrices
             H_inv,alpha,nabla,Q = Auxiliary(z,A,b)
         
+        # Early stopping
         F_new = np.mean(S[-10:,-1])
         if F_new >= F_old:
             break

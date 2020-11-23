@@ -18,17 +18,17 @@ import solvers
 params = {}
 
 # Dimension and scale
-params["d"] = 3
-params["N"] = 1000
+params["d"] = 1
+params["N"] = 100
 
 # Optimality criteria
-params["eps"] = 5e-1
+params["eps"] = 1e4
 params["delta"] = 1e-6
 
 # Generate the model
-params["sigma"] = 1e0 # sub-Gaussian parameter
-# model = models.queueing_model.QueueModel(params)
-model = models.quadratic_model.QuadraticModel(params)
+params["sigma"] = 1e8 # sub-Gaussian parameter
+model = models.queueing_model.QueueModel(params)
+# model = models.quadratic_model.QuadraticModel(params)
 
 if "L" in model:
     params["L"] = model["L"]
@@ -57,17 +57,17 @@ if "L" in model:
 # # Use adaptive sampling algorithm
 # output_ada = solvers.adaptive_solver.AdaptiveSolver(model["F"],params)
 # print(output_ada)
-# # Use uniform sampling algorithm
-# output_uni = solvers.uniform_solver.UniformSolver(model["F"],params)
-# print(output_uni)
+# Use uniform sampling algorithm
+output_uni = solvers.uniform_solver.UniformSolver(model["F"],params)
+print(output_uni)
 
 # # Use truncated subgradient descent method
 # output_grad = solvers.gradient_solver.GradientSolver(model["F"],params)
 # print(output_grad)
 
-# Use Vaidya's cutting-plane method
-output_vai = solvers.vaidya_solver.VaidyaSolver(model["F"],params)
-print(output_vai)
+# # Use Vaidya's cutting-plane method
+# output_vai = solvers.vaidya_solver.VaidyaSolver(model["F"],params)
+# print(output_vai)
 
 
 

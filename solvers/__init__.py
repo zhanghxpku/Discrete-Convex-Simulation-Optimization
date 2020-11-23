@@ -9,3 +9,4 @@ from .adaptive_solver import *
 from .uniform_solver import *
 from .gradient_solver import *
 from .vaidya_solver import *
+from .random_walk_solver import *
