@@ -18,8 +18,8 @@ import solvers
 params = {}
 
 # Dimension and scale
-params["d"] = 10
-params["N"] = 30
+params["d"] = 5
+params["N"] = 10
 
 # Optimality criteria
 params["eps"] = 2e-1
@@ -61,11 +61,13 @@ if "L" in model:
 # output_uni = solvers.uniform_solver.UniformSolver(model["F"],params)
 # print(output_uni)
 
-# Use truncated subgradient descent method
-output_grad = solvers.gradient_solver.GradientSolver(model["F"],params)
-print(output_grad)
+# # Use truncated subgradient descent method
+# output_grad = solvers.gradient_solver.GradientSolver(model["F"],params)
+# print(output_grad)
 
-
+# Use Vaidya's cutting-plane method
+output_vai = solvers.vaidya_solver.VaidyaSolver(model["F"],params)
+print(output_vai)
 
 
 
