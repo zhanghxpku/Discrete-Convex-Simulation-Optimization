@@ -9,6 +9,7 @@ Generate two queues under resource constraints examples.
 import numpy as np
 from scipy import stats
 # import matplotlib.pyplot as plt
+import time
 
 def QueueModel(params):
     """
@@ -16,7 +17,7 @@ def QueueModel(params):
     """
     
     # Service time
-    mean = (0.5,0.15)
+    mean = (0.25,0.15)
     var = (0.1,0.1)
     # Compute the parameters of log-normal dist
     s = np.sqrt(np.log( (1 + np.sqrt(1 + 4*var[0])) / 2))
@@ -91,13 +92,12 @@ def SingleQueue(num_server,intensity,max_rate,service_t,params):
         # Update waiting time
         wait_time += max(finish_min - i, 0)
         # Update finishing time
-        finish_time[next_server] += service_time[j]
+        finish_time[next_server] = max(finish_min,i) + service_time[j]
         # p[j] = max(finish_min - i, 0)
-    
     # plt.figure()
     # plt.plot(t,p)
     # plt.savefig(str(t.shape[0]) + ".png")
     
-    return wait_time
+    return wait_time / t.shape[0]
     
 

@@ -43,7 +43,7 @@ def AdaptiveSolver(F,params):
         
         # Upper bound on samples needed
         num_samples = RequiredSamples(delta/2/T_max,eps/8,params)
-        # print(num_samples)
+        print(num_samples)
         # Empirical mean
         hat_F_1 = 0
         hat_F_2 = 0
@@ -79,7 +79,7 @@ def AdaptiveSolver(F,params):
             total_samples += (2*num_samples)
             L, U = N_1, N_2
         
-        # print(L,U)
+        print(L,U)
         
     # Solve the sub-problem
     hat_F = np.zeros((U-L+1,))

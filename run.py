@@ -8,7 +8,6 @@ Created on Sun Nov  1 19:26:17 2020
 import numpy as np
 np.random.seed(101)
 import matplotlib.pyplot as plt
-import time
 
 import models
 import utils
@@ -19,14 +18,14 @@ params = {}
 
 # Dimension and scale
 params["d"] = 1
-params["N"] = 100
+params["N"] = 10
 
 # Optimality criteria
-params["eps"] = 1e4
+params["eps"] = 1e1
 params["delta"] = 1e-6
 
 # Generate the model
-params["sigma"] = 1e8 # sub-Gaussian parameter
+params["sigma"] = 1e2 # sub-Gaussian parameter
 model = models.queueing_model.QueueModel(params)
 # model = models.quadratic_model.QuadraticModel(params)
 
@@ -48,18 +47,18 @@ if "L" in model:
 #     y = np.zeros((params["N"],))
     
 #     for i,z in enumerate(x):
-#         for _ in range(50):
+#         for _ in range(5):
 #             y[i] += model["F"]([z])
-#     y /= 50
+#     y /= 5
     
 #     plt.plot(x,y)
 
 # # Use adaptive sampling algorithm
 # output_ada = solvers.adaptive_solver.AdaptiveSolver(model["F"],params)
 # print(output_ada)
-# Use uniform sampling algorithm
-output_uni = solvers.uniform_solver.UniformSolver(model["F"],params)
-print(output_uni)
+# # Use uniform sampling algorithm
+# output_uni = solvers.uniform_solver.UniformSolver(model["F"],params)
+# print(output_uni)
 
 # # Use truncated subgradient descent method
 # output_grad = solvers.gradient_solver.GradientSolver(model["F"],params)

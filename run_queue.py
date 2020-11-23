@@ -25,11 +25,11 @@ params["N"] = int(sys.argv[1])
 # params["N"] = 2
 
 # Optimality criteria
-params["eps"] = 1e4
+params["eps"] = 1e2 / params["N"]
 params["delta"] = 1e-6
 
 # Generate the model
-params["sigma"] = 1e8 # sub-Gaussian parameter
+params["sigma"] = 1e2 # sub-Gaussian parameter
 
 # Record average simulation runs and optimality gaps
 total_samples = np.zeros((2,))
@@ -90,7 +90,7 @@ for t in range(100):
                                                     params["eps"],
                                                     params)
     y = np.zeros((2,))
-    for i in range(num_samples):
+    for i in range(int(num_samples/100)):
         y[0] = ( y[0] * i + model["F"]([output_ada["x_opt"]]) ) / (i+1)
         y[1] = ( y[1] * i + model["F"]([output_uni["x_opt"]]) ) / (i+1)
     
@@ -119,9 +119,7 @@ for t in range(100):
 f_out.write("\n")
 f_out.write( " ".join([ str(total_samples[0]),str(gaps[0]) ]) )
 f_out.write("\n")
-
 f_out.write( " ".join([ str(total_samples[1]),str(gaps[1]) ]) )
-f_out.write("\n")  
 
 f_out.close()
 
