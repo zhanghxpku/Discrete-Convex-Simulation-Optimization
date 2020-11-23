@@ -27,8 +27,8 @@ def VaidyaSolver(F,params):
     L = params["L"] if "L" in params else 1
     
     # Set parameters
-    p = 1e-1 # eps in paper
-    q = 1e-3 * p # delta in paper
+    p = 1e-1 # eps=1e-4 in paper
+    q = 1e-3 * p # delta=1e-3*eps in paper
     
     # Total number of iterations
     T = math.ceil(d * math.log(d*L*N/eps) / q * 2)
@@ -59,12 +59,12 @@ def VaidyaSolver(F,params):
         if np.min(alpha) >= q:
             # Separation oracle
             # ti = time.time()
-            so = SO(F,z,eps/4*min(N,t+1),delta/4,params)
+            so = SO(F,z,eps/4*min(N,2**t+N),delta/4,params)
             c = -so["hat_grad"]
             hat_F = so["hat_F"]
-            beta = np.sum(c*z) - math.sqrt( 2*(c.T @ H_inv) @ c\
-                                           / math.sqrt(p*q) )
-            beta = np.sum(c*z) - 0.1
+            # beta = np.sum(c*z) - math.sqrt( 2*(c.T @ H_inv) @ c\
+            #                                 / math.sqrt(p*q) )
+            beta = np.sum(c*z) - 0.01 * abs(np.sum(c*z))
             # print(time.time() - ti)
             # Update total samples
             total_samples += so["total"]
@@ -75,14 +75,14 @@ def VaidyaSolver(F,params):
             b = np.concatenate((b,[beta]))
 
             # Update S
-            temp = np.concatenate((c,[[hat_F]]),axis=1) # 1*(d+1) vector
+            temp = np.concatenate((z,[hat_F]),axis=0) # (d+1) vector
+            temp = np.reshape(temp,(1,d+1)) # 1*(d+1) vector
             S = np.concatenate((S,temp),axis=0)
             print(hat_F)
             
             # Update volumetric center
             # Number of Newton steps
             num_newton = math.ceil( 30 * math.log( 2 / (q**4.5) ) )
-            # num_newton=1
             for _ in range(num_newton):
                 # Update matrices
                 H_inv,alpha,nabla,Q = Auxiliary(z,A,b)
@@ -112,7 +112,7 @@ def VaidyaSolver(F,params):
             # Update matrices
             H_inv,alpha,nabla,Q = Auxiliary(z,A,b)
         
-        F_new = np.mean(S[:,-1])
+        F_new = np.mean(S[-10:,-1])
         if F_new >= F_old:
             break
         else:
@@ -123,7 +123,7 @@ def VaidyaSolver(F,params):
     x_bar = S[i,:d]
     
     # Round to an integral solution
-    x_opt = Round(F,x_bar)
+    x_opt = Round(F,x_bar,params)["x_opt"]
     
     # Stop timing
     stop_time = time.time()

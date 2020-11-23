@@ -19,7 +19,7 @@ params = {}
 
 # Dimension and scale
 params["d"] = 3
-params["N"] = 10
+params["N"] = 1000
 
 # Optimality criteria
 params["eps"] = 5e-1
