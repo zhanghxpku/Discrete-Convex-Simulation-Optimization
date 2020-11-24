@@ -17,3 +17,5 @@
 - Truncated subgradient method
 
 - Vaidya's cutting-plane method
+
+- Cutting-plane method based on random walk
