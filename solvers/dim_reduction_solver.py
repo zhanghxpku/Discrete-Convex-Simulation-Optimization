@@ -9,7 +9,6 @@ Dimension reduction method
 
 import math
 import numpy as np
-import scipy as sp
 import time
 from utils.lovasz import Lovasz, Round, SO
 from utils.lll import LLL
