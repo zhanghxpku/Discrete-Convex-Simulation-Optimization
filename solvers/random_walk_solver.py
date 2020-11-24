@@ -12,7 +12,7 @@ import numpy as np
 import scipy as sp
 import time
 from utils.lovasz import Lovasz, Round, SO
-from utils.subgaussian import RequiredSamples
+# from utils.subgaussian import RequiredSamples
 
 def RandomWalkSolver(F,params):
     """
@@ -28,7 +28,7 @@ def RandomWalkSolver(F,params):
     L = params["L"] if "L" in params else 1
 
     # Total number of iterations
-    T = math.ceil(d * math.log(L*N/eps), 1.5)
+    T = math.ceil(d * math.log(L*N/eps, 1.5))
     # Set of points where SO is called and their empirical means
     S = np.zeros((0,d+1))
     print(T)
@@ -42,13 +42,13 @@ def RandomWalkSolver(F,params):
     total_samples = 0
     
     # Number of points to approximate covariance (N in the paper)
-    M = 5 * 10 * d * math.log(d) * max( 10, math.log(d) )
+    M = math.ceil(5 * 10 * d * math.log(d) * max( 10, math.log(d) ))
     # # Number of steps to approximate the uniform measure in P
-    # K = d**3 * 2e3
+    # K = math.ceil(d**3 * 2e3)
     
     # Record polytope Ax >= b
     A = np.zeros((0,d))
-    b = np.zeros((0,))
+    b = np.zeros((0,1))
     # Initial analytical center
     z = (N+1)/2 * np.ones((d,))
     # Initial uniform distribution
@@ -60,11 +60,13 @@ def RandomWalkSolver(F,params):
         so = SO(F,z,eps/4*min(N,2**t+N),delta/4,params)
         c = -so["hat_grad"]
         hat_F = so["hat_F"]
+        # Update total samples
+        total_samples += so["total"]
         
         # Update A and b
         c = np.reshape(c,(1,d))
         A = np.concatenate((A,c), axis=0)
-        b = np.concatenate((b,[np.sum(c*z)]))
+        b = np.concatenate((b,[[np.sum(c*z)]]),axis=0)
         
         # Update S
         temp = np.concatenate((z,[hat_F]),axis=0) # (d+1) vector
@@ -73,6 +75,7 @@ def RandomWalkSolver(F,params):
         print(hat_F)
         
         # Warm-start distribution
+        # print(A.shape,y_set.shape,b.shape)
         violation = np.min(A @ y_set - b, axis=0)
         y_set = y_set[:,violation >= 0]
         # Estimate the covarance matrix
@@ -80,7 +83,9 @@ def RandomWalkSolver(F,params):
         temp = y_set - y_bar
         Y = np.zeros((d,d))
         for i in range(y_set.shape[1]):
-            Y += ( temp[:,i] @ (temp[:,i].T / y_set.shape[1]) )
+            Y += ( temp[:,i:i+1] @ temp[:,i:i+1].T )
+        Y /= y_set.shape[1]
+        # print(Y)
         
         # Approximate uniform distribution
         y_set = RandomWalk(y_set,Y,A,b,params)
@@ -102,7 +107,6 @@ def RandomWalkSolver(F,params):
     
     # Round to an integral solution
     x_opt = Round(F,x_bar,params)["x_opt"]
-    
     # Stop timing
     stop_time = time.time()
     
@@ -118,9 +122,11 @@ def RandomWalk(y_set,Y,A,b,params):
     N = params["N"] if "N" in params else 2
     
     # Number of points to approximate covariance (N in the paper)
-    M = 5 * 10 * d * math.log(d) * max( 10, math.log(d) )
+    M = math.ceil(5 * 10 * d * math.log(d) * max( 10, math.log(d) ))
+    # M = 800
     # Number of steps to approximate the uniform measure in P
-    K = d**3 * 2e3
+    K = math.ceil(d**3 * 5e2)
+    # K = 4000
     
     # Square root of covariance matrix
     U = sp.linalg.sqrtm(Y)
@@ -134,6 +140,7 @@ def RandomWalk(y_set,Y,A,b,params):
         eta = 1 / math.sqrt(d)
         # Stopping steps
         stop_time = np.random.randint(0,K,(n,))
+        # print(M,stop_time.max())
         
         # Each update
         for j in range(np.max(stop_time)+1):
@@ -141,6 +148,7 @@ def RandomWalk(y_set,Y,A,b,params):
             block = np.zeros((n,),dtype=np.int16)
             # Block indices that are larger than stop_time
             block[ stop_time < j ] = 1
+            # print(n - block.sum())
             
             while np.sum(block) < n:
                 # Indices to be re-selected
@@ -149,18 +157,24 @@ def RandomWalk(y_set,Y,A,b,params):
                 # Generate uniform distribution in ball
                 u = np.random.randn(d,num)
                 norm = np.linalg.norm(u,axis=0,keepdims=True)
-                r = eta * np.ramdom.uniform(0,1,(1,num)) ** (1/d)
-                # Update one step
+                r = eta * np.random.uniform(0,1,(1,num)) ** (1/d)
+                # Update step
                 y_delta = (U @ u) * r / norm
-                y_update[ind] += y_delta
+                # For checking the constraints
+                temp = y_update[:,ind] + y_delta
                 
                 # Block indices with new points inside P
-                violation = np.min(A @ y_update[:,ind] - b, axis=0)
-                y_min = np.min(y_update[:,ind],axis=0) - 1
-                y_max = N - np.max(y_update[:,ind],axis=0)
-                check = np.minimum( violation, y_min, y_max )
-                block[ind[ np.where(check >= 0)[0] ]] = 1
+                violation = np.min(A @ temp - b, axis=0)
+                y_min = np.min(temp,axis=0) - 1
+                y_max = N - np.max(temp,axis=0)
+                check = np.minimum( np.minimum(violation, y_min), y_max )
+                valid = np.where(check >= 0)[0]
                 
+                # Update
+                block[ind[ valid ]] = 1
+                y_update[:,ind[valid]] = temp[:,valid]
+            break
+                                    
         # Update the set of points
         y_set = np.concatenate((y_set,y_update),axis=1)
             

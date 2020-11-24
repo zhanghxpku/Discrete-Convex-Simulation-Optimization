@@ -32,26 +32,26 @@ model = models.quadratic_model.QuadraticModel(params)
 if "L" in model:
     params["L"] = model["L"]
 
-if "f" in model:
-    # Plot the function
-    x = np.linspace(1,params["N"],params["N"])
-    y = np.zeros((params["N"],))
+# if "f" in model:
+#     # Plot the function
+#     x = np.linspace(1,params["N"],params["N"])
+#     y = np.zeros((params["N"],))
     
-    for i,z in enumerate(x):
-        y[i] = model["f"]([z])
+#     for i,z in enumerate(x):
+#         y[i] = model["f"]([z])
     
-    plt.plot(x,y)
-else:
-    # Plot the function
-    x = np.linspace(1,params["N"],params["N"])
-    y = np.zeros((params["N"],))
+#     plt.plot(x,y)
+# else:
+#     # Plot the function
+#     x = np.linspace(1,params["N"],params["N"])
+#     y = np.zeros((params["N"],))
     
-    for i,z in enumerate(x):
-        for _ in range(20):
-            y[i] += model["F"]([z])
-    y /= 20
+#     for i,z in enumerate(x):
+#         for _ in range(20):
+#             y[i] += model["F"]([z])
+#     y /= 20
     
-    plt.plot(x,y)
+#     plt.plot(x,y)
 
 # # Use adaptive sampling algorithm
 # output_ada = solvers.adaptive_solver.AdaptiveSolver(model["F"],params)
@@ -64,11 +64,13 @@ else:
 # output_grad = solvers.gradient_solver.GradientSolver(model["F"],params)
 # print(output_grad)
 
+# # Use Vaidya's cutting-plane method
+# output_vai = solvers.vaidya_solver.VaidyaSolver(model["F"],params)
+# print(output_vai)
+
 # Use Vaidya's cutting-plane method
-output_vai = solvers.vaidya_solver.VaidyaSolver(model["F"],params)
-print(output_vai)
-
-
+output_random = solvers.random_walk_solver.RandomWalkSolver(model["F"],params)
+print(output_random)
 
 
 

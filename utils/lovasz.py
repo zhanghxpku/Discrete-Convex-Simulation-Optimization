@@ -32,7 +32,7 @@ def Lovasz(F,x,params):
     sub_grad = np.zeros((d,))
     
     # The 0-th neighboring point
-    x_old = np.copy(x_int)
+    x_old = x_int
     for i in range(d):
         # The i-th neighboring point
         x_new = np.copy(x_old)
@@ -117,7 +117,7 @@ def SO(F,x,eps,delta,params):
     
     # Number of samples needed
     num_samples = RequiredSamples(delta,eps/2/N/np.sqrt(d),params)
-    # print(num_samples)
+    print(num_samples)
     
     # Record empirical mean and empirical subgradient
     hat_F = 0
@@ -128,9 +128,12 @@ def SO(F,x,eps,delta,params):
         lov, grad = Lovasz(F, x, params)
         
         # Update
-        hat_F = ( hat_F * t + lov ) / (t + 1)
-        hat_grad = ( hat_grad * t + grad ) / (t + 1)
-        
+        hat_F += lov
+        hat_grad += grad
+    
+    hat_F /= num_samples
+    hat_grad /= num_samples
+    
     # Return
     return { "hat_F":hat_F, "hat_grad":hat_grad, "total":num_samples*d }
     

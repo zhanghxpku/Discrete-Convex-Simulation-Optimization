@@ -113,7 +113,7 @@ def VaidyaSolver(F,params):
             H_inv,alpha,nabla,Q = Auxiliary(z,A,b)
         
         # Early stopping
-        F_new = np.mean(S[-10:,-1])
+        F_new = np.mean(S[-5:,-1])
         if F_new >= F_old:
             break
         else:
