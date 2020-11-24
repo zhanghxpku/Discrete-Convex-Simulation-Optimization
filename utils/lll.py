@@ -9,9 +9,9 @@ The LLL algorithm.
 
 import numpy as np
 
-def LLL(basis):
+def LLL(basis,A):
     """
-    Compute an LLL-reduced basis.
+    Compute an LLL-reduced basis under A-norm.
     """
     
     # Copy the parameter
@@ -22,34 +22,36 @@ def LLL(basis):
     # Algorithm parameter
     delta = 0.75
     # Gram-Schmidt orthogonalization
-    u = GramSchmidt(b)
+    u = GramSchmidt(b,A)
     
     k = 1
     while k < d:
         for j in range(k-1,-1,-1):
-            mu_kj = np.sum(b[k,:]*u[j,:]) / np.sum(u[j,:]*u[j,:])
+            mu_kj = InnerProduct(b[k,:],u[j,:],A)\
+                    / InnerProduct(u[j,:],u[j,:],A)
             
             if abs(mu_kj) > 0.5:
                 b[k,:] -= ( np.round(mu_kj) * b[j,:] )
                 # Gram-Schmidt orthogonalization
-                u = GramSchmidt(b)
+                u = GramSchmidt(b,A)
         
-        mu_kk_1 = np.sum(b[k,:]*u[k-1,:]) / np.sum(u[k-1,:]*u[k-1,:])
-        if np.sum(u[k,:]*u[k,:]) >= \
-            ( delta - mu_kk_1**2 ) * np.sum(u[k-1,:]*u[k-1,:]):
+        mu_kk_1 = InnerProduct(b[k,:],u[k-1,:],A)\
+                    / InnerProduct(u[k-1,:],u[k-1,:],A)
+        if InnerProduct(u[k,:],u[k,:],A) >= \
+            ( delta - mu_kk_1**2 ) * InnerProduct(u[k-1,:],u[k-1,:],A):
             k += 1
         else:
             # Exchange basis
             b[[k-1,k],:] = b[[k,k-1],:]
             # Gram-Schmidt orthogonalization
-            u = GramSchmidt(b)
+            u = GramSchmidt(b,A)
             k = max(k-1, 1)
     
     return b
     
-def GramSchmidt(basis):
+def GramSchmidt(basis,A):
     """
-    Gram-Schmidt orthogonalization.
+    Gram-Schmidt orthogonalization under A-norm.
     """
     
     # Get the dimension
@@ -61,6 +63,17 @@ def GramSchmidt(basis):
     for i in range(d):
         u[i,:] = basis[i,:]
         for j in range(i):
-            u[i,:] -= ( (np.sum(u[i,:]*u[j,:])/np.sum(u[j,:]*u[j,:])) * u[j,:] )
+            u[i,:] -= ( (InnerProduct(u[i,:],u[j,:],A) \
+                         / InnerProduct(u[j,:],u[j,:],A) ) * u[j,:] )
     
     return u
+
+def InnerProduct(x,y,A):
+    """
+    Inner product under A-norm.
+    """
+    
+    return np.sum( x * (A @ y) )
+
+
+

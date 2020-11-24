@@ -15,7 +15,7 @@ from utils.lovasz import Lovasz, Round, SO
 from utils.lll import LLL
 # from utils.subgaussian import RequiredSamples
 
-def RandomWalkSolver(F,params):
+def DimensionReductionSolver(F,params):
     """
     Cutting-plane method via random walk for multi-dim problems.
     """
@@ -26,7 +26,12 @@ def RandomWalkSolver(F,params):
     # sigma = params["sigma"] if "sigma" in params else 1
     eps = params["eps"] if "eps" in params else 1
     delta = params["delta"] if "delta" in params else 1e-6
-    L = params["L"] if "L" in params else 1
+    
+    # Initial centroid and inner center
+    z_k = (N+1)/2 * np.ones((d,))
+    z_in = (N+1)/2 * np.ones((d,))
+
+    
     
     
     return 0
