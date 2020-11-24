@@ -79,7 +79,7 @@ def GradientSolver(F,params):
         # Update the cumulative weight
         weight_cum = new_weight
         
-        if t % interval == 0:
+        if t % (interval * 10) == 0:
             f, _ = Lovasz(F,x_avg,params)
             print(f_new, hat_F, f)
         

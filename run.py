@@ -17,11 +17,11 @@ import solvers
 params = {}
 
 # Dimension and scale
-params["d"] = 3
-params["N"] = 10
+params["d"] = 5
+params["N"] = 1000
 
 # Optimality criteria
-params["eps"] = 5e-1
+params["eps"] = 1e-0
 params["delta"] = 1e-6
 
 # Generate the model
@@ -60,13 +60,13 @@ if "L" in model:
 # output_uni = solvers.uniform_solver.UniformSolver(model["F"],params)
 # print(output_uni)
 
-# # Use truncated subgradient descent method
-# output_grad = solvers.gradient_solver.GradientSolver(model["F"],params)
-# print(output_grad)
+# Use truncated subgradient descent method
+output_grad = solvers.gradient_solver.GradientSolver(model["F"],params)
+print(output_grad)
 
-# # Use Vaidya's cutting-plane method
-# output_vai = solvers.vaidya_solver.VaidyaSolver(model["F"],params)
-# print(output_vai)
+# Use Vaidya's cutting-plane method
+output_vai = solvers.vaidya_solver.VaidyaSolver(model["F"],params)
+print(output_vai)
 
 # Use Vaidya's cutting-plane method
 output_random = solvers.random_walk_solver.RandomWalkSolver(model["F"],params)

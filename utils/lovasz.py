@@ -117,7 +117,7 @@ def SO(F,x,eps,delta,params):
     
     # Number of samples needed
     num_samples = RequiredSamples(delta,eps/2/N/np.sqrt(d),params)
-    print(num_samples)
+    # print(num_samples)
     
     # Record empirical mean and empirical subgradient
     hat_F = 0
