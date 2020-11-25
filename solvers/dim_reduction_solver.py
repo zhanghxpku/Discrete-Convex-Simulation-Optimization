@@ -301,16 +301,17 @@ def RandomWalkApproximator(F,Y,y_in,A_in,b_in,params,centroid=False):
         # print(Y, y_bar[:,0], y_set.shape)
         yield Y, y_bar[:,0], y_set
         return
-        
+    
+    ti = time.time()
     # Constantly generate polytopes
     while True:
-        
+
         # Separation oracle
         so = SO(F,y_bar[:,0],eps/4*min(N,N),delta/4,params)
         c = -so["hat_grad"]
         hat_F = so["hat_F"]
         s = np.concatenate((y_bar,[[hat_F]]),axis=0)
-        
+
         # Update A and b
         c = np.reshape(c,(1,d))
         A = np.concatenate((A,c), axis=0)
@@ -331,7 +332,7 @@ def RandomWalkApproximator(F,Y,y_in,A_in,b_in,params,centroid=False):
         
         # Update uniform distribution in P
         y_set = RandomWalk(y_set,Y,A,b,params)
-        
+
         # Approximate centroid and covariance
         M = int(y_set.shape[1] / 2)
         y_bar = np.mean(y_set[:,:M],axis=1,keepdims=True)
