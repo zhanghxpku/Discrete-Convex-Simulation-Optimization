@@ -112,7 +112,7 @@ def RandomWalkSolver(F,params):
     
     return {"x_opt":x_opt, "time":stop_time-start_time, "total":total_samples}
 
-def RandomWalk(y_set,Y,A,b,params):
+def RandomWalk(y_set,Y,A,b,params,M=None):
     """
     Generate approximate uniform distribution in Ax >= b.
     """
@@ -122,7 +122,8 @@ def RandomWalk(y_set,Y,A,b,params):
     N = params["N"] if "N" in params else 2
     
     # Number of points to approximate covariance (N in the paper)
-    M = math.ceil(5 * 10 * d * math.log(d) * max( 10, math.log(d) ))
+    if M is None:
+        M = math.ceil(5 * 10 * d * math.log(d) * max( 10, math.log(d) ))
     # M = 800
     # Number of steps to approximate the uniform measure in P
     K = math.ceil(d**3 * 5e2)
@@ -164,10 +165,13 @@ def RandomWalk(y_set,Y,A,b,params):
                 temp = y_update[:,ind] + y_delta
                 
                 # Block indices with new points inside P
-                violation = np.min(A @ temp - b, axis=0)
                 y_min = np.min(temp,axis=0) - 1
                 y_max = N - np.max(temp,axis=0)
-                check = np.minimum( np.minimum(violation, y_min), y_max )
+                if A.shape[0] > 0:
+                    violation = np.min(A @ temp - b, axis=0)
+                    check = np.minimum( np.minimum(violation, y_min), y_max )
+                else:
+                    check = np.minimum(y_min, y_max)
                 valid = np.where(check >= 0)[0]
                 
                 # Update

@@ -75,5 +75,11 @@ def InnerProduct(x,y,A):
     
     return np.sum( x * (A @ y) )
 
+def Projection(L,x):
+    """
+    Compute the orthogonal projection of point x onto subspace L.
+    """
+    
+    return np.linalg.inv(L.T @ L) @ (L.T @ x)
 
 
