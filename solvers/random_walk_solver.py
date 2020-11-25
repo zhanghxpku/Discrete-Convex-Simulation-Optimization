@@ -67,6 +67,7 @@ def RandomWalkSolver(F,params):
         c = np.reshape(c,(1,d))
         A = np.concatenate((A,c), axis=0)
         b = np.concatenate((b,[[np.sum(c*z)]]),axis=0)
+        print(A)
         
         # Update S
         temp = np.concatenate((z,[hat_F]),axis=0) # (d+1) vector

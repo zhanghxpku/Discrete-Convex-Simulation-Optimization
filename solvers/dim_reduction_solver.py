@@ -16,6 +16,9 @@ from utils.lll import LLL, Projection
 from utils.subgaussian import RequiredSamples
 from .random_walk_solver import RandomWalk
 
+# import gurobipy as gp
+# from gurobipy import GRB
+
 def DimensionReductionSolver(F,params):
     """
     Cutting-plane method via random walk for multi-dim problems.
@@ -65,7 +68,8 @@ def DimensionReductionSolver(F,params):
         total_samples += so_samples
         # Iterate until we find a short basis vector
         # Use random walk method
-        for K,z_k,A_new,b_new in RandomWalkApproximator(F,L_cur,C,y_set,A,b,params):
+        for K,z_k,A_new,b_new, y_new in RandomWalkApproximator(F,L_cur,C,y_set,
+                                                               A,b,params):
             # Number of samples
             total_samples += so_samples
 
@@ -79,12 +83,48 @@ def DimensionReductionSolver(F,params):
             if np.min(norm) < 1e-2 / d**2 / 2**(2*d):
                 i_short = np.argmin( norm )
                 basis[[0,i_short],:] = basis[[i_short,0],:]
-                # Update the basis
+                # Update the basis and point set
+                y_set = y_new
                 L_cur = basis
+                # Update A and b
+                A = A_new
+                b = b_new
+                # Update inner center
+                z_in = z_k
                 break
             
         # Dimension reduction
-        
+        z = L[d-d_cur,:]
+        # Find the pre-image
+        for j in range(d-d_cur-1,-1,-1):
+            # Projection direction
+            v = L[j,:]
+            
+            # Solve for alpha
+            # Create a new model
+            model = gp.Model("alpha")
+            model.Params.OutputFlag = 0 # Controls output
+            # model.Params.MIPGap = 1e-9
+            # Variables
+            x = model.addVars(range(d-j+1), vtype=GRB.INTEGER, name="x")
+            alpha = model.addVar(vtype=GRB.CONTINUOUS, name="alpha")
+            # Add constraints
+            model.addConstrs(
+                (z[i] + alpha*v[i] == 
+                 gp.quicksum(L[k,i] * x[k-j] for k in range(j,d) )
+                 for i in range(d)),
+                name="c1")
+            model.addConstr( alpha <=  0.5, name='c2')
+            model.addConstr( alpha >= -0.5, name='c3')
+            # Set the objective function as constant
+            model.setObjective(0, GRB.MAXIMIZE)
+            # Solve the feasibility problem
+            model.optimize()
+            alpha = alpha.X
+            
+            z += alpha * v
+                
+                
         
         
         
@@ -151,7 +191,7 @@ def RandomWalkApproximator(F,L,Y,y_in,A_in,b_in,params):
     while True:
         
         # Separation oracle
-        so = SO(F,y_bar,eps/4*min(N,N),delta/4,params)
+        so = SO(F,y_bar[:,0],eps/4*min(N,N),delta/4,params)
         c = -so["hat_grad"]
         # hat_F = so["hat_F"]
         
@@ -190,7 +230,7 @@ def RandomWalkApproximator(F,L,Y,y_in,A_in,b_in,params):
         # print(y_bar, Y)
         
         # Output
-        yield Y, y_bar[:,0], A, b
+        yield Y, y_bar[:,0], A, b, y_set
         
         
         

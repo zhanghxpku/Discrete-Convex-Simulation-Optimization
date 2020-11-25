@@ -6,7 +6,7 @@ Created on Sun Nov  1 19:26:17 2020
 """
 
 import numpy as np
-np.random.seed(101)
+np.random.seed(1001)
 import matplotlib.pyplot as plt
 
 import models
