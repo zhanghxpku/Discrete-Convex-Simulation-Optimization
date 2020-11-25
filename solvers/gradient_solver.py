@@ -52,7 +52,7 @@ def GradientSolver(F,params):
     total_samples = 0
     
     # Weighted average
-    alpha = 0.75
+    alpha = 0.5
     weight_cum = 0
     
     # Truncated subgradient descent
@@ -73,13 +73,15 @@ def GradientSolver(F,params):
         
         # Update the moving average
         new_weight = weight_cum * (1-alpha) + alpha
-        x_avg = (x_avg * weight_cum * (1-alpha) + x*alpha) / new_weight
+        x_avg = ( x_avg * t + x ) / ( t + 1 )
+        # x_avg = (x_avg * weight_cum * (1-alpha) + x*alpha) / new_weight
         # Update the function value
-        f_new = (f_new * weight_cum * (1-alpha) + hat_F*alpha) / new_weight
+        f_new = ( f_new * t + hat_F ) / ( t + 1 )
+        # f_new = (f_new * weight_cum * (1-alpha) + hat_F*alpha) / new_weight
         # Update the cumulative weight
         weight_cum = new_weight
         
-        if t % (interval * 10) == 0:
+        if t % (interval * 3) == 0:
             f, _ = Lovasz(F,x_avg,params)
             print(f_new, hat_F, f)
         

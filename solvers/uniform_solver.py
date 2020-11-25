@@ -96,7 +96,7 @@ def UniformSolver(F,params):
             # Update empirical mean
             hat_F = np.array([ hat_F[j] for j in range(0,hat_F.shape[0],2) ])
         
-        # print(S,hat_F)
+        # print(S)
     
     # Update total simulations
     total_samples += (cur_samples * S.shape[0])

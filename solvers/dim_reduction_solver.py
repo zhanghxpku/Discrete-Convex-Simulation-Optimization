@@ -9,10 +9,9 @@ Dimension reduction method
 
 import math
 import numpy as np
-import scipy as sp
 import time
-from utils.lovasz import Lovasz, Round, SO
-from utils.lll import LLL, Projection
+from utils.lovasz import Round, SO
+from utils.lll import LLL
 from utils.subgaussian import RequiredSamples
 from .random_walk_solver import RandomWalk
 from .uniform_solver import UniformSolver
@@ -65,7 +64,7 @@ def DimensionReductionSolver(F,params):
     # Iteratively solve d_cur-dimensional problems
     while d_cur > 1:
         
-        # print(d_cur,L)
+        print(d_cur)
         # The current basis
         L_cur = L[d-d_cur:,:]
         
@@ -77,6 +76,7 @@ def DimensionReductionSolver(F,params):
             total_samples += so_samples
             # Update set S
             S = np.concatenate((S,s),axis=1)
+            print(s[-1,0])
 
             # The LLL algorithm
             basis = LLL(L_cur,K)

@@ -18,16 +18,17 @@ params = {}
 
 # Dimension and scale
 params["d"] = 3
-params["N"] = 1000
+params["N"] = 10
 
 # Optimality criteria
-params["eps"] = 1e-0
+params["eps"] = 5e-1
 params["delta"] = 1e-6
 
 # Generate the model
 params["sigma"] = 1e0 # sub-Gaussian parameter
 # model = models.queueing_model.QueueModel(params)
-model = models.quadratic_model.QuadraticModel(params)
+# model = models.quadratic_model.QuadraticModel(params)
+model = models.separable_model.SeparableModel(params)
 
 if "L" in model:
     params["L"] = model["L"]
@@ -68,13 +69,13 @@ if "L" in model:
 output_vai = solvers.vaidya_solver.VaidyaSolver(model["F"],params)
 print(output_vai)
 
-# # Use cutting-plane method based on random walk
-# output_random = solvers.random_walk_solver.RandomWalkSolver(model["F"],params)
-# print(output_random)
+# Use cutting-plane method based on random walk
+output_random = solvers.random_walk_solver.RandomWalkSolver(model["F"],params)
+print(output_random)
 
-# # Use dimension reduction method
-# output_reduction = solvers.dim_reduction_solver.DimensionReductionSolver(model["F"],params)
-# print(output_reduction)
+# Use dimension reduction method
+output_reduction = solvers.dim_reduction_solver.DimensionReductionSolver(model["F"],params)
+print(output_reduction)
 
 
 
