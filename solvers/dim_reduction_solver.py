@@ -15,6 +15,7 @@ from utils.lovasz import Lovasz, Round, SO
 from utils.lll import LLL, Projection
 from utils.subgaussian import RequiredSamples
 from .random_walk_solver import RandomWalk
+from .uniform_solver import UniformSolver
 
 import gurobipy as gp
 from gurobipy import GRB
@@ -38,6 +39,10 @@ def DimensionReductionSolver(F,params):
     start_time = time.time()
     # Count simulation runs
     total_samples = 0
+    # Record points where SO is called and their empirical means
+    S = np.zeros((d+1,0))
+    # Simulation cost of each separation oracle
+    so_samples = RequiredSamples(delta,eps/4/np.sqrt(d),params)
     
     # The current dimension
     d_cur = d
@@ -60,31 +65,28 @@ def DimensionReductionSolver(F,params):
     # Iteratively solve d_cur-dimensional problems
     while d_cur > 1:
         
-        print(d_cur,L)
-        
-        # Simulation cost of each separation oracle
-        so_samples = RequiredSamples(delta,eps/4/np.sqrt(d_cur),params)
+        # print(d_cur,L)
         # The current basis
         L_cur = L[d-d_cur:,:]
         
-        # Number of samples in the initialization of random walk method
-        total_samples += so_samples
         # Iterate until we find a short basis vector
         # Use random walk method
-        for K,z_new,A_new,b_new,y_new in RandomWalkApproximator(F,C,y_set,A,b,
-                                                                 params):
+        for K,z_new,A_new,b_new,y_new,s in RandomWalkApproximator(F,C,y_set,A,
+                                                                  b,params):
             # Number of samples
             total_samples += so_samples
+            # Update set S
+            S = np.concatenate((S,s),axis=1)
 
             # The LLL algorithm
             basis = LLL(L_cur,K)
             # Choose the shortest vector
             norm = np.diag( (basis @ K) @ basis.T )
-            print(np.min(norm))
+            # print(np.min(norm))
 
             # Stopping criterion
-            # if np.min(norm) < 1e-2 / d**2:
-            if np.min(norm) < 300:
+            if np.min(norm) < 1e-2 / d**2:
+            # if np.min(norm) < 300:
                 i_short = np.argmin( norm )
                 basis[[0,i_short],:] = basis[[i_short,0],:]
                 # Update the basis and point set
@@ -111,7 +113,7 @@ def DimensionReductionSolver(F,params):
             # Add constraints
             model.addConstrs(
                 (gp.quicksum( (x[k]-v[k])*L[j,k] for k in range(d) ) == 0
-                 for j in range(d-d_cur)),
+                  for j in range(d-d_cur)),
                 name="c1")
             # Set initial point
             for i in range(d):
@@ -150,20 +152,97 @@ def DimensionReductionSolver(F,params):
         # print(Y)
         
         # Update the uniform distribution in P
-        try:
-            next(RandomWalkApproximator(F,Y,y_set,A,b,params,True))
-        except StopIteration as ex:
-            C,z_k,y_set = ex.value
-            # print(C,z_k,y_set.shape)
+        C,z_k,y_set = next(RandomWalkApproximator(F,Y,y_set,A,b,params,True))
+        # print(C,z_k,y_set.shape)
         
         # Project the lattice basis onto the subspace
+        L[d-d_cur:,:] = L_cur
         L[d-d_cur+1:,:] = L[d-d_cur+1:,:] - L[d-d_cur+1:,:] @ v.reshape((d,1))\
                                         @ v.reshape((d,1)).T / np.sum(v*v)
         # print(L[d-d_cur+1:,:] @ v.reshape((d,1)))
         d_cur -= 1
     
     # Solve the one-dimensional problem
-    x_opt = 0
+    v = L[-1,:] # Direction of the line
+    y_bar = np.mean(y_set,axis=1) # Point on the line
+    # print(v,y_bar)
+    # v = np.array([1,0,0])
+    # y_bar = np.array([9.097,5,8])
+    
+    # Find an integral point on the line
+    # Create a new model
+    model = gp.Model("search")
+    model.Params.OutputFlag = 0 # Controls output
+    # model.Params.MIPGap = 1e-9
+    # Variables
+    x = model.addVars(range(d), vtype=GRB.INTEGER, ub=N, lb=1, name="x")
+    alpha = model.addVar( vtype = GRB.CONTINUOUS, name="alpha" )
+    # Add constraints
+    model.addConstrs(
+        ( y_bar[k] + alpha * v[k] == x[k] for k in range(d) ),
+        name="c1")
+    # Set initial point
+    for i in range(d):
+        x[i].start = y_bar[i]
+    model.update()
+    # Set the objective function as constant
+    model.setObjective(0, GRB.MAXIMIZE)
+    # Solve the feasibility problem
+    model.optimize()
+    
+    z = np.zeros((d,))
+    for i in range(d):
+        z[i] = x[i].X
+    # print(z)
+    
+    # Find the upper and lower bound of one-dim problem
+    bound = [0,0]
+    for i in range(N):
+        flag = False
+        if np.max( z + i * v ) < N + 1 and np.min( z + i * v ) > 0:
+            bound[1] = i
+            flag = True
+        if np.max( z - i * v ) < N + 1 and np.min( z - i * v ) > 0:
+            bound[0] = -i
+            flag = True
+        if not flag:
+            break
+    
+    # Shift to a problem with leftmost point 1
+    z = z + (bound[0] - 1) * v
+    M = bound[1] - bound[0] + 1
+    # Define a one-dimensional problem
+    G = lambda alpha: F( z + alpha[0] * v )
+    params_new = params.copy()
+    params_new["N"] = M
+    params_new["d"] = 1
+    params_new["eps"] = eps / 4
+    params_new["delta"] = delta / 4
+    # print(params_new)
+    # Use the uniform solver to solve the one-dim problem
+    output_uniform = UniformSolver(G, params_new)
+    # Update the total number of points
+    total_samples += output_uniform["total"]
+    # Optimal point
+    x_uni = z + output_uniform["x_opt"] * v
+    # print(x_uni)
+    
+    # Estimate the empirical mean of x_opt
+    num_samples = RequiredSamples(delta/2,eps/4,params)
+    hat_F = 0
+    for i in range(num_samples):
+        hat_F = hat_F + F(x_uni)
+    hat_F /= num_samples
+    
+    s = np.concatenate(( x_uni.reshape((d,1)) ,[[hat_F]]),axis=0)
+    S = np.concatenate((S,s),axis=1)
+    # print(S)
+    
+    # Find the point with minimal empirical mean in S
+    i_min = np.argmin(S[-1,:])
+    x_bar = S[:-1,i_min]
+    # Round to an integral solution
+    x_opt = Round(F,x_bar,params)["x_opt"]
     
     # Stop timing
     stop_time = time.time()
@@ -220,7 +299,8 @@ def RandomWalkApproximator(F,Y,y_in,A_in,b_in,params,centroid=False):
             Y += ( temp[:,i:i+1] @ temp[:,i:i+1].T )
         Y /= y_set.shape[1]
         # print(Y, y_bar[:,0], y_set.shape)
-        return Y, y_bar[:,0], y_set
+        yield Y, y_bar[:,0], y_set
+        return
         
     # Constantly generate polytopes
     while True:
@@ -228,7 +308,8 @@ def RandomWalkApproximator(F,Y,y_in,A_in,b_in,params,centroid=False):
         # Separation oracle
         so = SO(F,y_bar[:,0],eps/4*min(N,N),delta/4,params)
         c = -so["hat_grad"]
-        # hat_F = so["hat_F"]
+        hat_F = so["hat_F"]
+        s = np.concatenate((y_bar,[[hat_F]]),axis=0)
         
         # Update A and b
         c = np.reshape(c,(1,d))
@@ -265,7 +346,7 @@ def RandomWalkApproximator(F,Y,y_in,A_in,b_in,params,centroid=False):
         # print(y_bar, Y)
         
         # Output
-        yield Y, y_bar[:,0], A, b, y_set
+        yield Y, y_bar[:,0], A, b, y_set, s
 
 
 
