@@ -16,8 +16,8 @@ from utils.lll import LLL, Projection
 from utils.subgaussian import RequiredSamples
 from .random_walk_solver import RandomWalk
 
-# import gurobipy as gp
-# from gurobipy import GRB
+import gurobipy as gp
+from gurobipy import GRB
 
 def DimensionReductionSolver(F,params):
     """
@@ -45,19 +45,22 @@ def DimensionReductionSolver(F,params):
     L = np.eye(d)
     
     # Record polytope Ax >= b
+    # A = np.concatenate((np.eye(d),-np.eye(d)),axis=0)
+    # b = np.concatenate((np.ones((d,1),-N*np.ones(d,1))),axis=0)
     A = np.zeros((0,d))
     b = np.zeros((0,1))
     # The initial uniform distribution in P
     y_set = np.random.uniform(1,N,(d,400))
     # The initial ellipsoid
-    C_inv = (N-1)**(-2) * 12 * np.eye(d) # A in paper
+    # C_inv = (N-1)**(-2) * 12 * np.eye(d) # A in paper
     C = (N-1)**2 / 12 * np.eye(d) # A_inv in paper
-    # Initial centroid and inner center
+    # Initial centroid
     z_k = (N+1)/2 * np.ones((d,))
-    z_in = (N+1)/2 * np.ones((d,))
     
     # Iteratively solve d_cur-dimensional problems
     while d_cur > 1:
+        
+        print(d_cur,L)
         
         # Simulation cost of each separation oracle
         so_samples = RequiredSamples(delta,eps/4/np.sqrt(d_cur),params)
@@ -68,8 +71,8 @@ def DimensionReductionSolver(F,params):
         total_samples += so_samples
         # Iterate until we find a short basis vector
         # Use random walk method
-        for K,z_k,A_new,b_new, y_new in RandomWalkApproximator(F,L_cur,C,y_set,
-                                                               A,b,params):
+        for K,z_new,A_new,b_new,y_new in RandomWalkApproximator(F,C,y_set,A,b,
+                                                                 params):
             # Number of samples
             total_samples += so_samples
 
@@ -80,61 +83,84 @@ def DimensionReductionSolver(F,params):
             print(np.min(norm))
 
             # Stopping criterion
-            if np.min(norm) < 1e-2 / d**2 / 2**(2*d):
+            # if np.min(norm) < 1e-2 / d**2:
+            if np.min(norm) < 300:
                 i_short = np.argmin( norm )
                 basis[[0,i_short],:] = basis[[i_short,0],:]
                 # Update the basis and point set
-                y_set = y_new
-                L_cur = basis
+                y_set, L_cur = y_new, basis
                 # Update A and b
-                A = A_new
-                b = b_new
-                # Update inner center
-                z_in = z_k
+                A, b = A_new, b_new
+                # Update centroid
+                z_k = z_new
                 break
-            
+        
         # Dimension reduction
-        z = L[d-d_cur,:]
         # Find the pre-image
-        for j in range(d-d_cur-1,-1,-1):
-            # Projection direction
-            v = L[j,:]
-            
-            # Solve for alpha
+        v = L_cur[0,:]
+        if d_cur == d:
+            z = v
+        else:
+            # Solve for z
             # Create a new model
-            model = gp.Model("alpha")
+            model = gp.Model("pre-image")
             model.Params.OutputFlag = 0 # Controls output
             # model.Params.MIPGap = 1e-9
             # Variables
-            x = model.addVars(range(d-j+1), vtype=GRB.INTEGER, name="x")
-            alpha = model.addVar(vtype=GRB.CONTINUOUS, name="alpha")
+            x = model.addVars(range(d), vtype=GRB.INTEGER, name="x")
             # Add constraints
             model.addConstrs(
-                (z[i] + alpha*v[i] == 
-                 gp.quicksum(L[k,i] * x[k-j] for k in range(j,d) )
-                 for i in range(d)),
+                (gp.quicksum( (x[k]-v[k])*L[j,k] for k in range(d) ) == 0
+                 for j in range(d-d_cur)),
                 name="c1")
-            model.addConstr( alpha <=  0.5, name='c2')
-            model.addConstr( alpha >= -0.5, name='c3')
+            # Set initial point
+            for i in range(d):
+                x[i].start = v[i]
+            model.update()
             # Set the objective function as constant
             model.setObjective(0, GRB.MAXIMIZE)
             # Solve the feasibility problem
             model.optimize()
-            alpha = alpha.X
             
-            z += alpha * v
-                
-                
+            z = np.zeros((d,))
+            for i in range(d):
+                z[i] = x[i].X
         
+        # Construct the hyperplane v^T y = v_y
+        v_y = np.sum( (v-z)*z_k ) + round( np.sum( z * z_k ) )
+        # print(v,v_y)
         
+        # Update the point set
+        y_set = y_set - v.reshape((d,1)) @ ((v.reshape((d,1)).T @ y_set - v_y)\
+                                            / np.sum(v*v))
+        # Remove outside points
+        y_min = np.min(y_set,axis=0) - 1
+        y_max = N - np.max(y_set,axis=0)
+        violation = np.min(A @ y_set - b, axis=0)
+        check = np.minimum( np.minimum(violation, y_min), y_max )
+        y_set = y_set[:,check >= 0]
         
+        # Estimate the centroid covarance matrix
+        y_bar = np.mean(y_set,axis=1,keepdims=True)
+        temp = y_set - y_bar
+        Y = np.zeros((d,d))
+        for i in range(y_set.shape[1]):
+            Y += ( temp[:,i:i+1] @ temp[:,i:i+1].T )
+        Y /= y_set.shape[1]
+        # print(Y)
         
+        # Update the uniform distribution in P
+        try:
+            next(RandomWalkApproximator(F,Y,y_set,A,b,params,True))
+        except StopIteration as ex:
+            C,z_k,y_set = ex.value
+            # print(C,z_k,y_set.shape)
         
-        
-        
-        
-        
-        
+        # Project the lattice basis onto the subspace
+        L[d-d_cur+1:,:] = L[d-d_cur+1:,:] - L[d-d_cur+1:,:] @ v.reshape((d,1))\
+                                        @ v.reshape((d,1)).T / np.sum(v*v)
+        # print(L[d-d_cur+1:,:] @ v.reshape((d,1)))
+        d_cur -= 1
     
     # Solve the one-dimensional problem
     x_opt = 0
@@ -145,11 +171,10 @@ def DimensionReductionSolver(F,params):
     return {"x_opt":x_opt, "time":stop_time-start_time, "total":total_samples}
 
 
-def RandomWalkApproximator(F,L,Y,y_in,A_in,b_in,params):
+def RandomWalkApproximator(F,Y,y_in,A_in,b_in,params,centroid=False):
     """
-    Output the new polytope, its approximate centeriod and approximate covariance matrix.
+    Output the new polytope, its approximate centroid and approximate covariance matrix.
     
-    L: lattice basis
     Y: approximate covariance matrix
     y_set: warm-up distribution in P
     A_in, b_in: polytope
@@ -186,6 +211,16 @@ def RandomWalkApproximator(F,L,Y,y_in,A_in,b_in,params):
     y_set = RandomWalk(y_set,Y,A,b,params)    
     # Approximate centroid
     y_bar = np.mean(y_set,axis=1,keepdims=True)
+    
+    # Only need to update the uniform distribution
+    if centroid:
+        temp = y_set - y_bar
+        Y = np.zeros((d,d))
+        for i in range(y_set.shape[1]):
+            Y += ( temp[:,i:i+1] @ temp[:,i:i+1].T )
+        Y /= y_set.shape[1]
+        # print(Y, y_bar[:,0], y_set.shape)
+        return Y, y_bar[:,0], y_set
         
     # Constantly generate polytopes
     while True:
@@ -231,8 +266,6 @@ def RandomWalkApproximator(F,L,Y,y_in,A_in,b_in,params):
         
         # Output
         yield Y, y_bar[:,0], A, b, y_set
-        
-        
-        
+
 
 

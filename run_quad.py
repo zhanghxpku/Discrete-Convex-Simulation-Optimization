@@ -131,9 +131,9 @@ min_val = np.zeros((10,))
 
 for N in range(10,110,10):
     i = 0
-    results = np.zeros((1002,4))
+    results = np.zeros((102,4))
         
-    with open("quad_"+str(N)+".txt") as f_in:
+    with open("queue_"+str(N)+".txt") as f_in:
         for line in f_in:
             line = line.split(" ")
             if len(line) == 4:
@@ -165,15 +165,15 @@ plt.errorbar([N for N in range(10,110,10)], stat[:,0],
              yerr=stat[:,1])
 plt.errorbar([N for N in range(10,110,10)], stat[:,2],
              yerr=stat[:,3])
-N_set = np.array([N for N in range(10,110,10)])
-plt.plot( N_set, (np.log(N_set) **1) * 1e4 + stat[0,0] - 1e3*math.log(10)**2 )
+# N_set = np.array([N for N in range(10,110,10)])
+# plt.plot( N_set, (np.log(N_set) **1) * 1e4 + stat[0,0] - 1e3*math.log(10)**2 )
 # plt.plot( N_set, np.log(N_set) * 6e2 + stat[1,2] - 6e2*math.log(20) )
 
-# plt.figure()
-# plt.errorbar([N for N in range(10,110,10)], stat[:,4],
-#               yerr=stat[:,5])
-# plt.errorbar([N for N in range(10,110,10)], stat[:,6],
-#               yerr=stat[:,7])
+plt.figure()
+plt.errorbar([N for N in range(10,110,10)], stat[:,4],
+              yerr=stat[:,5])
+plt.errorbar([N for N in range(10,110,10)], stat[:,6],
+              yerr=stat[:,7])
 
 
 
