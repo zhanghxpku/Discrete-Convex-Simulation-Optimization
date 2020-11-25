@@ -17,7 +17,7 @@ def QueueModel(params):
     """
     
     # Service time
-    mean = (0.25,0.15)
+    mean = (0.75,0.65)
     var = (0.1,0.1)
     # Compute the parameters of log-normal dist
     s = np.sqrt(np.log( (1 + np.sqrt(1 + 4*var[0])) / 2))
@@ -47,16 +47,18 @@ def WaitingTime(x,service,params):
     Gamma_2 = Y - Z
     
     # Generate intensity functions
-    lambda_1 = lambda t: Gamma_1 * ( 300 + 100 * np.sin(0.3*t) )
-    lambda_2 = lambda t: Gamma_2 * ( 500 + 200 * np.sin(0.2*t) )
+    lambda_1 = lambda t: Gamma_1 * ( 75 + 25 * np.sin(0.3*t) )
+    lambda_2 = lambda t: Gamma_2 * ( 80 + 40 * np.sin(0.2*t) )
     
     # Maximal rates
-    max_1 = 400 * Gamma_1
-    max_2 = 700 * Gamma_2
+    max_1 = 100 * Gamma_1
+    max_2 = 120 * Gamma_2
     
     # The total waiting time
-    return SingleQueue(x[0],lambda_1,max_1,service[0],params)\
-                   + SingleQueue(N+1-x[0],lambda_2,max_2,service[1],params)
+    t1, n1 = SingleQueue(x[0],lambda_1,max_1,service[0],params)
+    t2, n2 = SingleQueue(N+1-x[0],lambda_2,max_2,service[1],params)
+    
+    return (t1 + t2) / (n1 + n2)
 
 def SingleQueue(num_server,intensity,max_rate,service_t,params):
     """
@@ -64,7 +66,7 @@ def SingleQueue(num_server,intensity,max_rate,service_t,params):
     """
     
     # Retrieve parameters
-    T = params["T"] if "T" in params else 10
+    T = params["T"] if "T" in params else 2
     
     # Number of arrivals
     n = stats.poisson.rvs(T * max_rate)
@@ -98,6 +100,6 @@ def SingleQueue(num_server,intensity,max_rate,service_t,params):
     # plt.plot(t,p)
     # plt.savefig(str(t.shape[0]) + ".png")
     
-    return wait_time / t.shape[0]
+    return wait_time, t.shape[0]
     
 
