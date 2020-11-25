@@ -4,6 +4,8 @@
 
 - Quadratic models
 
+- Separable models
+
 - Queueing with two lines and limited resources
 
 ## One-dimensional algorithms
@@ -19,3 +21,5 @@
 - Vaidya's cutting-plane method
 
 - Cutting-plane method based on random walk
+
+- Dimension reduction method
