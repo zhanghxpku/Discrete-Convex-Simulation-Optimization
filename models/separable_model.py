@@ -20,10 +20,11 @@ def SeparableModel(params):
     x_opt = np.random.randint(1+int(0.2*(N-1)), 1+int(0.8*(N-1)), (d,))
     coef = np.random.uniform(0.75,1.25,(d,))
 
-    f = lambda x: np.sum( coef * ( (np.array(x) < x_opt) / (np.array(x)) * (x_opt)\
-                         + (np.array(x) >= x_opt) / (N + 1 - np.array(x)) * (N + 1 - x_opt) ) )
+    f = lambda x: np.sum( coef * ( (np.array(x) < x_opt) * np.sqrt((x_opt) / (np.array(x))) \
+                         + (np.array(x) >= x_opt) * np.sqrt( (N + 1 - x_opt) / (N + 1 - np.array(x))) ))
     F = lambda x: f(np.array(x)) + sigma * np.random.randn()
-    L = max(np.linalg.norm( x_opt ,np.inf ), np.linalg.norm( N+1-x_opt, np.inf ))
+    L = np.sqrt(max(np.linalg.norm( x_opt ,np.inf ), 
+                    np.linalg.norm( N+1-x_opt, np.inf )))
     
     opt = x_opt
     

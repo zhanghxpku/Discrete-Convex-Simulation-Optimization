@@ -141,13 +141,12 @@ def DimensionReductionSolver(F,params):
         y_set = y_set - v.reshape((d,1)) @ ((v.reshape((d,1)).T @ y_set - v_y)\
                                             / np.sum(v*v))
         # Remove outside points
-        print(y_set.shape)
         y_min = np.min(y_set,axis=0) - 1
         y_max = N - np.max(y_set,axis=0)
         violation = np.min(A @ y_set - b, axis=0)
         check = np.minimum( np.minimum(violation, y_min), y_max )
         y_set = y_set[:,check >= 0]
-        print(y_set.shape)
+        # print(y_set.shape)
         
         # Check if intersection is empty
         if y_set.shape[1] == 0:
@@ -165,7 +164,7 @@ def DimensionReductionSolver(F,params):
         # Remove negative eigenvalues
         u = min( np.min(np.linalg.eigvalsh(Y)), 0)
         Y -= u * np.eye(d)
-        
+                
         # Update the uniform distribution in P
         C,z_k,y_set = next(RandomWalkApproximator(F,Y,y_set,A,b,params,True))
         # print(C,z_k,y_set.shape)

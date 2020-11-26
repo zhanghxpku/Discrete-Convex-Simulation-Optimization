@@ -131,7 +131,7 @@ def RandomWalk(y_set,Y,A,b,params,M=None):
     # K = 4000
     
     # Square root of covariance matrix
-    U = sp.linalg.sqrtm(Y)
+    U = np.real( sp.linalg.sqrtm(Y) )
     # print(U)
     
     while y_set.shape[1] < 2*M:        
