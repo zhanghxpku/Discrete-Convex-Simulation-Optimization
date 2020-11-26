@@ -124,14 +124,15 @@ def RandomWalk(y_set,Y,A,b,params,M=None):
     
     # Number of points to approximate covariance (N in the paper)
     if M is None:
-        M = math.ceil(5 * 10 * d * math.log(d) * max( 10, math.log(d) ))
+        M = math.ceil(5 * 20 * d * math.log(d) * max( 20, math.log(d) ))
     # M = 800
     # Number of steps to approximate the uniform measure in P
-    K = math.ceil(d**3 * 5e2)
+    K = math.ceil(d**3 * 2e3)
     # K = 4000
     
     # Square root of covariance matrix
     U = sp.linalg.sqrtm(Y)
+    # print(U)
     
     while y_set.shape[1] < 2*M:        
         # Num of points to be updated

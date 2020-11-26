@@ -27,7 +27,7 @@ def GradientSolver(F,params):
     L = params["L"] if "L" in params else 1
     
     # Initial point
-    x = np.floor(np.ones((d,)) * N / 2)
+    x = np.ones((d,)) * (N+1) / 2
     # The moving average
     x_avg = np.copy(x)
     # Comparion of objective function values
@@ -43,8 +43,8 @@ def GradientSolver(F,params):
                        64*(d**2)*(N**2) / (eps**2) * math.log(sigma*d**2/N**3)
                        ) )
     M = max(2*sigma*math.sqrt(math.log( max(4*sigma*d*N*T / eps, 1) )), L) 
-    print(T,M)
     eta =  N / M / np.sqrt( T )
+    print(T,eta,M)
     
     # Start timing
     start_time = time.time()
@@ -84,9 +84,10 @@ def GradientSolver(F,params):
         if t % (interval * 3) == 0:
             f, _ = Lovasz(F,x_avg,params)
             print(f_new, hat_F, f)
+            print(sub_grad)
         
         # Early stopping
-        if t % interval == interval - 1 and t >= interval:
+        if t % interval == interval - 1 and t >= 5 * interval:
             # Decay is not sufficient
             if f_new - f_old >= 0:
                 break

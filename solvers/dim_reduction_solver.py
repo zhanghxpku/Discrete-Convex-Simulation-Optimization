@@ -61,6 +61,8 @@ def DimensionReductionSolver(F,params):
     # Initial centroid
     z_k = (N+1)/2 * np.ones((d,))
     
+    # Early stopping
+    early_stop = False
     # Iteratively solve d_cur-dimensional problems
     while d_cur > 1:
         
@@ -76,13 +78,14 @@ def DimensionReductionSolver(F,params):
             total_samples += so_samples
             # Update set S
             S = np.concatenate((S,s),axis=1)
-            print(s[-1,0])
+            # print(s[-1,0])
+            # print(K)
 
             # The LLL algorithm
             basis = LLL(L_cur,K)
             # Choose the shortest vector
             norm = np.diag( (basis @ K) @ basis.T )
-            # print(np.min(norm))
+            print(np.min(norm))
 
             # Stopping criterion
             if np.min(norm) < 1e-2 / d**2:
@@ -98,8 +101,10 @@ def DimensionReductionSolver(F,params):
                 break
         
         # Dimension reduction
-        # Find the pre-image
+        L[d-d_cur:,:] = L_cur
         v = L_cur[0,:]
+        
+        # Find the pre-image
         if d_cur == d:
             z = v
         else:
@@ -136,11 +141,18 @@ def DimensionReductionSolver(F,params):
         y_set = y_set - v.reshape((d,1)) @ ((v.reshape((d,1)).T @ y_set - v_y)\
                                             / np.sum(v*v))
         # Remove outside points
+        print(y_set.shape)
         y_min = np.min(y_set,axis=0) - 1
         y_max = N - np.max(y_set,axis=0)
         violation = np.min(A @ y_set - b, axis=0)
         check = np.minimum( np.minimum(violation, y_min), y_max )
         y_set = y_set[:,check >= 0]
+        print(y_set.shape)
+        
+        # Check if intersection is empty
+        if y_set.shape[1] == 0:
+            early_stop = True
+            break
         
         # Estimate the centroid covarance matrix
         y_bar = np.mean(y_set,axis=1,keepdims=True)
@@ -150,93 +162,101 @@ def DimensionReductionSolver(F,params):
             Y += ( temp[:,i:i+1] @ temp[:,i:i+1].T )
         Y /= y_set.shape[1]
         # print(Y)
+        # Remove negative eigenvalues
+        u = min( np.min(np.linalg.eigvalsh(Y)), 0)
+        Y -= u * np.eye(d)
         
         # Update the uniform distribution in P
         C,z_k,y_set = next(RandomWalkApproximator(F,Y,y_set,A,b,params,True))
         # print(C,z_k,y_set.shape)
         
         # Project the lattice basis onto the subspace
-        L[d-d_cur:,:] = L_cur
         L[d-d_cur+1:,:] = L[d-d_cur+1:,:] - L[d-d_cur+1:,:] @ v.reshape((d,1))\
                                         @ v.reshape((d,1)).T / np.sum(v*v)
         # print(L[d-d_cur+1:,:] @ v.reshape((d,1)))
         d_cur -= 1
     
-    # Solve the one-dimensional problem
-    v = L[-1,:] # Direction of the line
-    y_bar = np.mean(y_set,axis=1) # Point on the line
-    # print(v,y_bar)
-    # v = np.array([1,0,0])
-    # y_bar = np.array([9.097,5,8])
-    
-    # Find an integral point on the line
-    # Create a new model
-    model = gp.Model("search")
-    model.Params.OutputFlag = 0 # Controls output
-    # model.Params.MIPGap = 1e-9
-    # Variables
-    x = model.addVars(range(d), vtype=GRB.INTEGER, ub=N, lb=1, name="x")
-    alpha = model.addVar( vtype = GRB.CONTINUOUS, name="alpha" )
-    # Add constraints
-    model.addConstrs(
-        ( y_bar[k] + alpha * v[k] == x[k] for k in range(d) ),
-        name="c1")
-    # Set initial point
-    for i in range(d):
-        x[i].start = y_bar[i]
-    model.update()
-    # Set the objective function as constant
-    model.setObjective(0, GRB.MAXIMIZE)
-    # Solve the feasibility problem
-    model.optimize()
-    
-    z = np.zeros((d,))
-    for i in range(d):
-        z[i] = x[i].X
-    # print(z)
-    
-    # Find the upper and lower bound of one-dim problem
-    bound = [0,0]
-    for i in range(N):
-        flag = False
-        if np.max( z + i * v ) < N + 1 and np.min( z + i * v ) > 0:
-            bound[1] = i
-            flag = True
-        if np.max( z - i * v ) < N + 1 and np.min( z - i * v ) > 0:
-            bound[0] = -i
-            flag = True
-        if not flag:
-            break
-    
-    # Shift to a problem with leftmost point 1
-    z = z + (bound[0] - 1) * v
-    M = bound[1] - bound[0] + 1
-    # Define a one-dimensional problem
-    G = lambda alpha: F( z + alpha[0] * v )
-    params_new = params.copy()
-    params_new["N"] = M
-    params_new["d"] = 1
-    params_new["eps"] = eps / 4
-    params_new["delta"] = delta / 4
-    # print(params_new)
-    # Use the uniform solver to solve the one-dim problem
-    output_uniform = UniformSolver(G, params_new)
-    # Update the total number of points
-    total_samples += output_uniform["total"]
-    # Optimal point
-    x_uni = z + output_uniform["x_opt"] * v
-    # print(x_uni)
-    
-    # Estimate the empirical mean of x_opt
-    num_samples = RequiredSamples(delta/2,eps/4,params)
-    hat_F = 0
-    for i in range(num_samples):
-        hat_F = hat_F + F(x_uni)
-    hat_F /= num_samples
-    
-    s = np.concatenate(( x_uni.reshape((d,1)) ,[[hat_F]]),axis=0)
-    S = np.concatenate((S,s),axis=1)
-    # print(S)
+    # If no early stopping
+    if not early_stop:
+        # Solve the one-dimensional problem
+        v = L[-1,:] # Direction of the line
+        y_bar = np.mean(y_set,axis=1) # Point on the line
+        # print(v,y_bar)
+        # v = np.array([1,0,0])
+        # y_bar = np.array([9.097,5,8])
+        
+        # Find an integral point on the line
+        # Create a new model
+        model = gp.Model("search")
+        model.Params.OutputFlag = 0 # Controls output
+        # model.Params.MIPGap = 1e-9
+        # Variables
+        x = model.addVars(range(d), vtype=GRB.INTEGER, ub=N, lb=1, name="x")
+        alpha = model.addVar( vtype = GRB.CONTINUOUS, name="alpha" )
+        # Add constraints
+        model.addConstrs(
+            ( y_bar[k] + alpha * v[k] == x[k] for k in range(d) ),
+            name="c1")
+        # Set initial point
+        for i in range(d):
+            x[i].start = y_bar[i]
+        model.update()
+        # Set the objective function as constant
+        model.setObjective(0, GRB.MAXIMIZE)
+        # Solve the feasibility problem
+        model.optimize()
+        
+        z = np.zeros((d,))
+        try:
+            for i in range(d):
+                z[i] = x[i].X
+            # print(z)
+            
+            # Find the upper and lower bound of one-dim problem
+            bound = [0,0]
+            for i in range(N):
+                flag = False
+                if np.max( z + i * v ) < N + 1 and np.min( z + i * v ) > 0:
+                    bound[1] = i
+                    flag = True
+                if np.max( z - i * v ) < N + 1 and np.min( z - i * v ) > 0:
+                    bound[0] = -i
+                    flag = True
+                if not flag:
+                    break
+            
+            # Shift to a problem with leftmost point 1
+            z = z + (bound[0] - 1) * v
+            M = bound[1] - bound[0] + 1
+            # Define a one-dimensional problem
+            G = lambda alpha: F( z + alpha[0] * v )
+            params_new = params.copy()
+            params_new["N"] = M
+            params_new["d"] = 1
+            params_new["eps"] = eps / 4
+            params_new["delta"] = delta / 4
+            # print(params_new)
+            # Use the uniform solver to solve the one-dim problem
+            output_uniform = UniformSolver(G, params_new)
+            # Update the total number of points
+            total_samples += output_uniform["total"]
+            # Optimal point
+            x_uni = z + output_uniform["x_opt"] * v
+            # print(x_uni)
+            
+            # Estimate the empirical mean of x_opt
+            num_samples = RequiredSamples(delta/2,eps/4,params)
+            hat_F = 0
+            for i in range(num_samples):
+                hat_F = hat_F + F(x_uni)
+            hat_F /= num_samples
+            
+            s = np.concatenate(( x_uni.reshape((d,1)) ,[[hat_F]]),axis=0)
+            S = np.concatenate((S,s),axis=1)
+            # print(S)
+        
+        except AttributeError:
+            pass
     
     # Find the point with minimal empirical mean in S
     i_min = np.argmin(S[-1,:])
@@ -293,16 +313,19 @@ def RandomWalkApproximator(F,Y,y_in,A_in,b_in,params,centroid=False):
     
     # Only need to update the uniform distribution
     if centroid:
+        # print(y_bar)
         temp = y_set - y_bar
         Y = np.zeros((d,d))
         for i in range(y_set.shape[1]):
             Y += ( temp[:,i:i+1] @ temp[:,i:i+1].T )
         Y /= y_set.shape[1]
         # print(Y, y_bar[:,0], y_set.shape)
+        # Remove negative eigenvalues
+        u = min(np.min(np.linalg.eigvalsh(Y)),0)
+        Y -= u * np.eye(d)
         yield Y, y_bar[:,0], y_set
         return
     
-    ti = time.time()
     # Constantly generate polytopes
     while True:
 
@@ -329,6 +352,10 @@ def RandomWalkApproximator(F,Y,y_in,A_in,b_in,params,centroid=False):
             Y += ( temp[:,i:i+1] @ temp[:,i:i+1].T )
         Y /= y_set.shape[1]
         # print(Y)
+        # Remove negative eigenvalues
+        u = min(np.min(np.linalg.eigvalsh(Y)),0)
+        # print(np.min(np.linalg.eigvalsh(Y)),u)
+        Y -= u * np.eye(d)
         
         # Update uniform distribution in P
         y_set = RandomWalk(y_set,Y,A,b,params)
@@ -341,6 +368,10 @@ def RandomWalkApproximator(F,Y,y_in,A_in,b_in,params,centroid=False):
         for i in range(M):
             Y += ( temp[:,i:i+1] @ temp[:,i:i+1].T )
         Y /= M
+        # Remove negative eigenvalues
+        u = min( np.min(np.linalg.eigvalsh(Y)), 0)
+        # print(np.min(np.linalg.eigvalsh(Y)), u)
+        Y -= u * np.eye(d)
         
         # Update point set
         y_set = y_set[:,M:]

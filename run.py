@@ -18,7 +18,7 @@ params = {}
 
 # Dimension and scale
 params["d"] = 3
-params["N"] = 10
+params["N"] = 1000
 
 # Optimality criteria
 params["eps"] = 5e-1
@@ -61,9 +61,9 @@ if "L" in model:
 # output_uni = solvers.uniform_solver.UniformSolver(model["F"],params)
 # print(output_uni)
 
-# # Use truncated subgradient descent method
-# output_grad = solvers.gradient_solver.GradientSolver(model["F"],params)
-# print(output_grad)
+# Use truncated subgradient descent method
+output_grad = solvers.gradient_solver.GradientSolver(model["f"],params)
+print(output_grad)
 
 # # Use Vaidya's cutting-plane method
 # output_vai = solvers.vaidya_solver.VaidyaSolver(model["F"],params)
@@ -73,9 +73,9 @@ if "L" in model:
 # output_random = solvers.random_walk_solver.RandomWalkSolver(model["F"],params)
 # print(output_random)
 
-# Use dimension reduction method
-output_reduction = solvers.dim_reduction_solver.DimensionReductionSolver(model["F"],params)
-print(output_reduction)
+# # Use dimension reduction method
+# output_reduction = solvers.dim_reduction_solver.DimensionReductionSolver(model["F"],params)
+# print(output_reduction)
 
 
 
