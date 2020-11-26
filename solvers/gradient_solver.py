@@ -28,6 +28,7 @@ def GradientSolver(F,params):
     
     # Initial point
     x = np.ones((d,)) * (N+1) / 2
+    # x = np.random.uniform(1,N,(d,))
     # The moving average
     x_avg = np.copy(x)
     # Comparion of objective function values
@@ -87,9 +88,9 @@ def GradientSolver(F,params):
             print(sub_grad)
         
         # Early stopping
-        if t % interval == interval - 1 and t >= 10 * interval:
+        if t % interval == interval - 1 and t >= 5 * interval:
             # Decay is not sufficient
-            if f_new - f_old >= -eps / 100 / d:
+            if f_new - f_old >= -eps / 2 / d:
                 break
 
         if t % interval == interval - 1:
