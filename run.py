@@ -18,12 +18,12 @@ import solvers
 params = {}
 
 # Dimension and scale
-params["d"] = 7
-params["N"] = 100
+params["d"] = 1
+params["N"] = 10
 
 # Optimality criteria
-# params["eps"] = math.log(params["d"]+1,2)*params["N"]**0.5 / 40
-params["eps"] = math.log(params["d"]+1,2)*params["N"]**0.5 / 80
+params["eps"] = math.log(params["d"]+1,2) / 5
+# params["eps"] = math.log(params["d"]+1,2)*params["N"]**0.5 / 80
 params["delta"] = 1e-6
 
 # Generate the model
@@ -40,33 +40,33 @@ else:
     params["L"] = 1
     params["closed_form"] = False
 
-# if "f" in model:
-#     # Plot the function
-#     x = np.linspace(1,params["N"],params["N"])
-#     y = np.zeros((params["N"],))
+if "f" in model:
+    # Plot the function
+    x = np.linspace(1,params["N"],params["N"])
+    y = np.zeros((params["N"],))
     
-#     for i,z in enumerate(x):
-#         y[i] = model["f"]([z])
+    for i,z in enumerate(x):
+        y[i] = model["f"]([z])
     
-#     plt.plot(x,y)
-# else:
-#     # Plot the function
-#     x = np.linspace(1,params["N"],params["N"])
-#     y = np.zeros((params["N"],))
+    plt.plot(x,y)
+else:
+    # Plot the function
+    x = np.linspace(1,params["N"],params["N"])
+    y = np.zeros((params["N"],))
     
-#     for i,z in enumerate(x):
-#         for _ in range(20):
-#             y[i] += model["F"]([z])
-#     y /= 20
+    for i,z in enumerate(x):
+        for _ in range(20):
+            y[i] += model["F"]([z])
+    y /= 20
     
-#     plt.plot(x,y)
+    plt.plot(x,y)
 
-# # Use adaptive sampling algorithm
-# output_ada = solvers.adaptive_solver.AdaptiveSolver(model["F"],params)
-# print(output_ada)
-# # Use uniform sampling algorithm
-# output_uni = solvers.uniform_solver.UniformSolver(model["F"],params)
-# print(output_uni)
+# Use adaptive sampling algorithm
+output_ada = solvers.adaptive_solver.AdaptiveSolver(model["F"],params)
+print(output_ada)
+# Use uniform sampling algorithm
+output_uni = solvers.uniform_solver.UniformSolver(model["F"],params)
+print(output_uni)
 
 # # Use truncated subgradient descent method
 # output_grad = solvers.gradient_solver.GradientSolver(model["f"],params)
@@ -77,9 +77,9 @@ else:
 # # Use cutting-plane method based on random walk
 # output_random = solvers.random_walk_solver.RandomWalkSolver(model["F"],params)
 # print(output_random)
-# Use dimension reduction method
-output_reduction = solvers.dim_reduction_solver.DimensionReductionSolver(model["F"],params)
-print(output_reduction)
+# # Use dimension reduction method
+# output_reduction = solvers.dim_reduction_solver.DimensionReductionSolver(model["F"],params)
+# print(output_reduction)
 
 
 

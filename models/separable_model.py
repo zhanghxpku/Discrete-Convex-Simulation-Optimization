@@ -14,7 +14,9 @@ def OneDimFunction(x_0,x_opt,x_1,x_2,params):
     
     x = np.array(x_0)
     if len(x.shape) == 1:
-        return np.sum((x-x_opt)**4 * ( (x < x_opt)*x_1 + (x >= x_opt)*x_2 ))
+        # return np.sum((x-x_opt)**4 * ( (x < x_opt)*x_1 + (x >= x_opt)*x_2 ))
+        return np.sum(( (x < x_opt)*x_1/np.sqrt(x)\
+                       + (x >= x_opt)*x_2/np.sqrt(params["N"]+1-x) ))
     else:
         opt = x_opt.reshape((x_opt.shape[0],1))
         return np.sum( ( ((x < opt).T * x_1).T + ((x >= opt).T * x_2).T ) \
@@ -36,9 +38,9 @@ def SeparableModel(params):
     #                       - np.sum(coef)
     # f = lambda x: np.sum(coef*( (np.array(x) < x_opt) * ((x_opt-1)**0.25-(np.array(x)-1)**0.25)\
     #             + (np.array(x) >= x_opt) *( (N-x_opt)**0.25-(N-np.array(x))**0.25 ) ))
-    x_1 = coef / (x_opt**3.5)
-    x_2 = coef / ((N+1-x_opt)**3.5)
-    f = lambda x: OneDimFunction(x,x_opt,x_1,x_2,params)
+    x_1 = coef * (x_opt**0.5)
+    x_2 = coef * ((N+1-x_opt)**0.5)
+    f = lambda x: OneDimFunction(x,x_opt,x_1,x_2,params) - np.sum(coef)
     # f = lambda x: np.sum((np.array(x)-x_opt)**4 * ( (np.array(x) < x_opt)*x_1\
     #             + (np.array(x) >= x_opt)*x_2 ))
     F = lambda x: f(x) + sigma * np.random.randn( (np.array(x).shape[-1])\
