@@ -41,7 +41,7 @@ def DimensionReductionSolver(F,params):
     # Record points where SO is called and their empirical means
     S = np.zeros((d+1,0))
     # Simulation cost of each separation oracle
-    so_samples = RequiredSamples(delta,eps/4/np.sqrt(d),params)
+    so_samples = RequiredSamples(delta/4,eps/8/np.sqrt(d),params)
     
     # The current dimension
     d_cur = d
@@ -75,10 +75,10 @@ def DimensionReductionSolver(F,params):
         for K,z_new,A_new,b_new,y_new,s in RandomWalkApproximator(F,C,y_set,A,
                                                                   b,params):
             # Number of samples
-            total_samples += so_samples
+            total_samples += so_samples*d
             # Update set S
             S = np.concatenate((S,s),axis=1)
-            print(s[-1,0])
+            # print(s[-1,0])
             # print(K)
 
             # The LLL algorithm

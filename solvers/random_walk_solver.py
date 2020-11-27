@@ -127,7 +127,7 @@ def RandomWalk(y_set,Y,A,b,params,M=None):
         M = math.ceil(5 * 20 * d * math.log(d+1) * max( 20, math.log(d) ))
     # M = 800
     # Number of steps to approximate the uniform measure in P
-    K = math.ceil(d**3 * 2e3)
+    K = math.ceil(d**3 * 2e4)
     # K = 4000
     
     # Square root of covariance matrix

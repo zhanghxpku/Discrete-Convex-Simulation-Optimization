@@ -137,7 +137,7 @@ def SO(F,x,eps,delta,params):
     
     # Number of samples needed
     num_samples = RequiredSamples(delta,eps/2/N/np.sqrt(d),params)
-    print(num_samples)
+    # print(num_samples)
     
     if params["closed_form"]:
         hat_F, hat_grad = Lovasz(F, x, params, num_samples)
