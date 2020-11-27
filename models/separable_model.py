@@ -19,8 +19,9 @@ def OneDimFunction(x_0,x_opt,x_1,x_2,params):
                        + (x >= x_opt)*x_2/np.sqrt(params["N"]+1-x) ))
     else:
         opt = x_opt.reshape((x_opt.shape[0],1))
-        return np.sum( ( ((x < opt).T * x_1).T + ((x >= opt).T * x_2).T ) \
-                      * (x-opt)**4,axis=0)
+        return np.sum( ((x < opt).T * x_1).T/np.sqrt(x)\
+                        + (((x >= opt).T * x_2).T )/np.sqrt(params["N"]+1-x)
+                      ,axis=0)
 
 def SeparableModel(params):
     
@@ -48,7 +49,7 @@ def SeparableModel(params):
     F_hat = lambda x, n=1: f(x) + sigma / math.sqrt(n)\
     * np.random.randn( (np.array(x).shape[-1]) ** (len(np.array(x).shape)-1))
     L = np.sqrt(max(np.linalg.norm( x_opt ,np.inf ), 
-                    np.linalg.norm( N+1-x_opt, np.inf )))
+                    np.linalg.norm( N+1-x_opt, np.inf ))) * (1-1/math.sqrt(2))
     
     opt = x_opt
     

@@ -51,7 +51,7 @@ def UniformSolver(F,params):
             for j in range(S.shape[0]):
                 hat_F[j] = (hat_F[j] * (i + cur_samples) + F([S[j]]))\
                             / (cur_samples + i + 1)
-        
+
             # Check conditions
             CI = ConfidenceInterval(delta/2/T_max,params,cur_samples+i+1)
             

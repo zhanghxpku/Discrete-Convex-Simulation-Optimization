@@ -18,8 +18,8 @@ import solvers
 params = {}
 
 # Dimension and scale
-params["d"] = 1
-params["N"] = 10
+params["d"] = 7
+params["N"] = 100
 
 # Optimality criteria
 params["eps"] = math.log(params["d"]+1,2) / 5
@@ -61,12 +61,12 @@ else:
     
     plt.plot(x,y)
 
-# Use adaptive sampling algorithm
-output_ada = solvers.adaptive_solver.AdaptiveSolver(model["F"],params)
-print(output_ada)
-# Use uniform sampling algorithm
-output_uni = solvers.uniform_solver.UniformSolver(model["F"],params)
-print(output_uni)
+# # Use adaptive sampling algorithm
+# output_ada = solvers.adaptive_solver.AdaptiveSolver(model["F"],params)
+# print(output_ada)
+# # Use uniform sampling algorithm
+# output_uni = solvers.uniform_solver.UniformSolver(model["F"],params)
+# print(output_uni)
 
 # # Use truncated subgradient descent method
 # output_grad = solvers.gradient_solver.GradientSolver(model["f"],params)

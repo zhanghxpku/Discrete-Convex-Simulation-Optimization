@@ -31,7 +31,7 @@ def RandomWalkSolver(F,params):
     T = math.ceil(d * math.log(L*N/eps, 1.5))
     # Set of points where SO is called and their empirical means
     S = np.zeros((0,d+1))
-    print(T)
+    # print(T)
     
     # Early stopping
     F_old = np.inf
@@ -73,7 +73,7 @@ def RandomWalkSolver(F,params):
         temp = np.concatenate((z,[hat_F]),axis=0) # (d+1) vector
         temp = np.reshape(temp,(1,d+1)) # 1*(d+1) vector
         S = np.concatenate((S,temp),axis=0)
-        print(hat_F)
+        # print(hat_F)
         
         # Warm-start distribution
         # print(A.shape,y_set.shape,b.shape)
@@ -124,7 +124,7 @@ def RandomWalk(y_set,Y,A,b,params,M=None):
     
     # Number of points to approximate covariance (N in the paper)
     if M is None:
-        M = math.ceil(5 * 20 * d * math.log(d+1) * max( 20, math.log(d) ))
+        M = math.ceil(50 * 20 * d * math.log(d+1) * max( 20, math.log(d) ))
     # M = 800
     # Number of steps to approximate the uniform measure in P
     K = math.ceil(d**3 * 2e4)

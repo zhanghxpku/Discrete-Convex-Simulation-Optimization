@@ -66,7 +66,7 @@ def DimensionReductionSolver(F,params):
     # Iteratively solve d_cur-dimensional problems
     while d_cur > 1:
         
-        print(d_cur)
+        # print(d_cur)
         # The current basis
         L_cur = L[d-d_cur:,:]
         
@@ -85,10 +85,10 @@ def DimensionReductionSolver(F,params):
             basis = LLL(L_cur,K)
             # Choose the shortest vector
             norm = np.diag( (basis @ K) @ basis.T )
-            print(np.min(norm))
+            # print(np.min(norm))
 
             # Stopping criterion
-            if np.min(norm) < 1e-2 / d**2:
+            if np.min(norm) < 1e0 / d**2:
             # if np.min(norm) < 300:
                 i_short = np.argmin( norm )
                 basis[[0,i_short],:] = basis[[i_short,0],:]
@@ -228,17 +228,19 @@ def DimensionReductionSolver(F,params):
             z = z + (bound[0] - 1) * v
             M = bound[1] - bound[0] + 1
             # Define a one-dimensional problem
-            G = lambda alpha: F( z + alpha[0] * v )
+            G = lambda alpha: float(F( z + alpha[0] * v ))
             params_new = params.copy()
             params_new["N"] = M
             params_new["d"] = 1
-            params_new["eps"] = eps / 4
+            # params_new["eps"] = eps / 4
+            params_new["eps"] = eps
             params_new["delta"] = delta / 4
             # print(params_new)
             # Use the uniform solver to solve the one-dim problem
             output_uniform = UniformSolver(G, params_new)
             # Update the total number of points
             total_samples += output_uniform["total"]
+            print(params_new)
             # Optimal point
             x_uni = z + output_uniform["x_opt"] * v
             # print(x_uni)
@@ -247,7 +249,7 @@ def DimensionReductionSolver(F,params):
             num_samples = RequiredSamples(delta/2,eps/4,params)
             hat_F = 0
             for i in range(num_samples):
-                hat_F = hat_F + F(x_uni)
+                hat_F = hat_F + float(F(x_uni))
             hat_F /= num_samples
             
             s = np.concatenate(( x_uni.reshape((d,1)) ,[[hat_F]]),axis=0)

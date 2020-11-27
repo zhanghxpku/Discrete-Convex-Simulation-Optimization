@@ -34,7 +34,7 @@ def VaidyaSolver(F,params):
     T = math.ceil(d * math.log(d*L*N/eps) / q * 2)
     # Set of points where SO is called and their empirical means
     S = np.zeros((0,d+1))
-    print(T)
+    # print(T)
     
     # Early stopping
     F_old = np.inf
@@ -78,7 +78,7 @@ def VaidyaSolver(F,params):
             temp = np.concatenate((z,[hat_F]),axis=0) # (d+1) vector
             temp = np.reshape(temp,(1,d+1)) # 1*(d+1) vector
             S = np.concatenate((S,temp),axis=0)
-            print(hat_F)
+            # print(hat_F)
             
             # Update volumetric center
             # Number of Newton steps
@@ -90,7 +90,7 @@ def VaidyaSolver(F,params):
                 z -= (0.18 * np.linalg.solve(Q,nabla))
             # Update matrices
             H_inv,alpha,nabla,Q = Auxiliary(z,A,b)
-            print(z)
+            # print(z)
             
         # Case II
         else:
