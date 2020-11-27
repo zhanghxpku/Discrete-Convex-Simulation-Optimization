@@ -42,7 +42,7 @@ def RandomWalkSolver(F,params):
     total_samples = 0
     
     # Number of points to approximate covariance (N in the paper)
-    M = math.ceil(5 * 10 * d * math.log(d) * max( 10, math.log(d) ))
+    M = math.ceil(5 * 10 * d * math.log(d+1) * max( 10, math.log(d) ))
     # # Number of steps to approximate the uniform measure in P
     # K = math.ceil(d**3 * 2e3)
     
@@ -124,7 +124,7 @@ def RandomWalk(y_set,Y,A,b,params,M=None):
     
     # Number of points to approximate covariance (N in the paper)
     if M is None:
-        M = math.ceil(5 * 20 * d * math.log(d) * max( 20, math.log(d) ))
+        M = math.ceil(5 * 20 * d * math.log(d+1) * max( 20, math.log(d) ))
     # M = 800
     # Number of steps to approximate the uniform measure in P
     K = math.ceil(d**3 * 2e3)

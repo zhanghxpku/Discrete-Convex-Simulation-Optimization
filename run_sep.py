@@ -118,54 +118,54 @@ f_out.close()
 
 
 
-# stat = np.zeros((10,8))
-# min_val = np.zeros((10,))
+stat = np.zeros((15,8))
+min_val = np.zeros((15,))
 
-# for N in range(50,160,10):
-#     i = 0
-#     results = np.zeros((102,4))
+for N in range(10,160,10):
+    i = 0
+    results = np.zeros((402,4))
         
-#     with open("./results/sep_"+str(N)+".txt") as f_in:
-#         for line in f_in:
-#             line = line.split(" ")
-#             if len(line) == 4:
-#                 for j in range(4):
-#                     results[i,j] = float(line[j])
-#                 i += 1
-#             elif len(line) == 3:
-#                 for j in range(3):
-#                     results[i,j] = float(line[j])
-#                 i += 1
+    with open("./results/sqrt_sep/sep_"+str(N)+".txt") as f_in:
+        for line in f_in:
+            line = line.split(" ")
+            if len(line) == 4:
+                for j in range(4):
+                    results[i,j] = float(line[j])
+                i += 1
+            elif len(line) == 3:
+                for j in range(3):
+                    results[i,j] = float(line[j])
+                i += 1
     
-#     # Average simulation runs
-#     stat[int(N/10)-1,0] = np.mean(results[:-2,0])
-#     stat[int(N/10)-1,1] = np.std(results[:-2,0])
-#     stat[int(N/10)-1,2] = np.mean(results[:-2,1])
-#     stat[int(N/10)-1,3] = np.std(results[:-2,1])
+    # Average simulation runs
+    stat[int(N/10)-1,0] = np.mean(results[:-2,0])
+    stat[int(N/10)-1,1] = np.std(results[:-2,0])
+    stat[int(N/10)-1,2] = np.mean(results[:-2,1])
+    stat[int(N/10)-1,3] = np.std(results[:-2,1])
     
-#     # Average optimality gaps
-#     stat[int(N/10)-1,4] = np.mean(results[:-2,2])
-#     stat[int(N/10)-1,5] = np.std(results[:-2,2])
-#     stat[int(N/10)-1,6] = np.mean(results[:-2,3])
-#     stat[int(N/10)-1,7] = np.std(results[:-2,3])
+    # Average optimality gaps
+    stat[int(N/10)-1,4] = np.mean(results[:-2,2])
+    stat[int(N/10)-1,5] = np.std(results[:-2,2])
+    stat[int(N/10)-1,6] = np.mean(results[:-2,3])
+    stat[int(N/10)-1,7] = np.std(results[:-2,3])
     
-#     # Minimal value
-#     min_val[int(N/10)-1] = np.min( results[:-2,[2,3]] )
+    # Minimal value
+    min_val[int(N/10)-1] = np.min( results[:-2,[2,3]] )
 
-# plt.figure()
-# plt.errorbar([N for N in range(10,110,10)], stat[:,0],
-#              yerr=stat[:,1])
-# plt.errorbar([N for N in range(10,110,10)], stat[:,2],
-#              yerr=stat[:,3])
-# # N_set = np.array([N for N in range(10,110,10)])
-# # plt.plot( N_set, (np.log(N_set) **1) * 1e4 + stat[0,0] - 1e3*math.log(10)**2 )
-# # plt.plot( N_set, np.log(N_set) * 6e2 + stat[1,2] - 6e2*math.log(20) )
+plt.figure()
+plt.errorbar([N for N in range(10,160,10)], stat[:,0],
+              yerr=stat[:,1])
+plt.errorbar([N for N in range(10,160,10)], stat[:,2],
+              yerr=stat[:,3])
+# N_set = np.array([N for N in range(10,110,10)])
+# plt.plot( N_set, (np.log(N_set) **1) * 1e4 + stat[0,0] - 1e3*math.log(10)**2 )
+# plt.plot( N_set, np.log(N_set) * 6e2 + stat[1,2] - 6e2*math.log(20) )
 
-# plt.figure()
-# plt.errorbar([N for N in range(10,110,10)], stat[:,4],
-#               yerr=stat[:,5])
-# plt.errorbar([N for N in range(10,110,10)], stat[:,6],
-#               yerr=stat[:,7])
+plt.figure()
+plt.errorbar([N for N in range(10,160,10)], stat[:,4],
+              yerr=stat[:,5])
+plt.errorbar([N for N in range(10,160,10)], stat[:,6],
+              yerr=stat[:,7])
 
 
 

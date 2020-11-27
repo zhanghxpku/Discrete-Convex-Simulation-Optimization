@@ -10,7 +10,7 @@ The Lovasz extension
 import numpy as np
 from .subgaussian import RequiredSamples, ConfidenceInterval
 
-def Lovasz(F,x,params):
+def Lovasz(F,x,params, num_samples=1):
     """
     Compute the Lovasz extension and its subgradient at point x.
     """
@@ -27,24 +27,43 @@ def Lovasz(F,x,params):
     # Compute a consistent permuation
     alpha = np.argsort(-x_loc)
     
-    # Compute the Lovasz extension and its subgradient
-    lov = F(x_int)
-    sub_grad = np.zeros((d,))
-    
-    # The 0-th neighboring point
-    x_old = x_int
-    for i in range(d):
-        # The i-th neighboring point
-        x_new = np.copy(x_old)
-        x_new[alpha[i]] += 1
+    if params["closed_form"]:
+        # Compute neighboring points
+        x_nei = np.zeros((d,d+1))
+        x_nei[:,0] = x_int
         
-        sub_grad[alpha[i]] = F(x_new) - F(x_old)
-        lov += sub_grad[alpha[i]] * x_loc[alpha[i]]
+        for i in range(d):
+            x_nei[:,i+1] = x_nei[:,i]
+            x_nei[alpha[i],i+1] += 1
+            
+        # Compute the objective value at neighboring points
+        # print(np.concatenate( (x_nei,x_nei[:,:-1]), axis=1 ).shape, num_samples)
+        F_obj = F(np.concatenate( (x_nei,x_nei[:,:-1]), axis=1 ), num_samples)
         
-        # Update neighboring point
-        x_old = x_new
+        # Compute the Lovasz extension and its subgradient
+        sub_grad = F_obj[1:d+1] - F_obj[d+1:]
+        lov = F_obj[0] + np.sum( x_loc * sub_grad )
+    else:
+        # Compute the Lovasz extension and its subgradient
+        lov = F(x_int)
+        sub_grad = np.zeros((d,))
+        
+        # The 0-th neighboring point
+        x_old = x_int
+        for i in range(d):
+            # The i-th neighboring point
+            x_new = np.copy(x_old)
+            x_new[alpha[i]] += 1
+            
+            sub_grad[alpha[i]] = F(x_new) - F(x_old)
+            # lov += sub_grad[alpha[i]] * x_loc[alpha[i]]
+            
+            # Update neighboring point
+            x_old = x_new
+        
+        lov += np.sum( sub_grad * x_loc )
     
-    return lov, sub_grad
+    return float(lov), sub_grad
 
 def Round(F,x,params):
     """
@@ -117,22 +136,25 @@ def SO(F,x,eps,delta,params):
     
     # Number of samples needed
     num_samples = RequiredSamples(delta,eps/2/N/np.sqrt(d),params)
-    # print(num_samples)
+    print(num_samples)
     
-    # Record empirical mean and empirical subgradient
-    hat_F = 0
-    hat_grad = np.zeros((d,))
-    
-    # Simulate
-    for t in range(num_samples):
-        lov, grad = Lovasz(F, x, params)
+    if params["closed_form"]:
+        hat_F, hat_grad = Lovasz(F, x, params, num_samples)
+    else:
+        # Record empirical mean and empirical subgradient
+        hat_F = 0
+        hat_grad = np.zeros((d,))
         
-        # Update
-        hat_F += lov
-        hat_grad += grad
-    
-    hat_F /= num_samples
-    hat_grad /= num_samples
+        # Simulate
+        for t in range(num_samples):
+            lov, grad = Lovasz(F, x, params)
+            
+            # Update
+            hat_F += lov
+            hat_grad += grad
+        
+        hat_F /= num_samples
+        hat_grad /= num_samples
     
     # Return
     return { "hat_F":hat_F, "hat_grad":hat_grad, "total":num_samples*d }

@@ -78,7 +78,7 @@ def DimensionReductionSolver(F,params):
             total_samples += so_samples
             # Update set S
             S = np.concatenate((S,s),axis=1)
-            # print(s[-1,0])
+            print(s[-1,0])
             # print(K)
 
             # The LLL algorithm
