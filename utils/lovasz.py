@@ -41,7 +41,8 @@ def Lovasz(F,x,params, num_samples=1):
         F_obj = F(np.concatenate( (x_nei,x_nei[:,:-1]), axis=1 ), num_samples)
         
         # Compute the Lovasz extension and its subgradient
-        sub_grad = F_obj[1:d+1] - F_obj[d+1:]
+        sub_grad = np.zeros((d,))
+        sub_grad[alpha] = F_obj[1:d+1] - F_obj[d+1:]
         lov = F_obj[0] + np.sum( x_loc * sub_grad )
     else:
         # Compute the Lovasz extension and its subgradient

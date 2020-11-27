@@ -35,7 +35,7 @@ model = models.separable_model.SeparableModel(params)
 # Lipschitz constant and closed-form objective function
 if "L" in model:
     params["L"] = model["L"]
-    params["closed_form"] = False
+    params["closed_form"] = True
 else:
     params["L"] = 1
     params["closed_form"] = False
@@ -74,12 +74,12 @@ else:
 # Use Vaidya's cutting-plane method
 output_vai = solvers.vaidya_solver.VaidyaSolver(model["F"],params)
 print(output_vai)
-# # Use cutting-plane method based on random walk
-# output_random = solvers.random_walk_solver.RandomWalkSolver(model["F"],params)
-# print(output_random)
-# # Use dimension reduction method
-# output_reduction = solvers.dim_reduction_solver.DimensionReductionSolver(model["F"],params)
-# print(output_reduction)
+# Use cutting-plane method based on random walk
+output_random = solvers.random_walk_solver.RandomWalkSolver(model["F"],params)
+print(output_random)
+# Use dimension reduction method
+output_reduction = solvers.dim_reduction_solver.DimensionReductionSolver(model["F"],params)
+print(output_reduction)
 
 
 
