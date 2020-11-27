@@ -57,7 +57,7 @@ def RandomWalkSolver(F,params):
     for t in range(T):
         
         # Separation oracle
-        so = SO(F,z,eps/4*min(N,2**t+N),delta/4,params)
+        so = SO(F,z,eps/4*min(N,2**t+N/4),delta/4,params)
         c = -so["hat_grad"]
         hat_F = so["hat_F"]
         # Update total samples

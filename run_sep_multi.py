@@ -83,19 +83,20 @@ for t in range(10):
     # Get the optimal objective value
     f_opt = model["f"](model["x_opt"])
     
-    # Use truncated subgradient descent method
-    output_grad = solvers.gradient_solver.GradientSolver(model["F"],params)
+    # # Use truncated subgradient descent method
+    # output_grad = solvers.gradient_solver.GradientSolver(model["F"],params)
     # print(output_grad)
     # Use Vaidya's cutting-plane method
     output_vai = solvers.vaidya_solver.VaidyaSolver(model["F"],params)
     # print(output_vai)
-    # output_grad = output_vai
     # Use cutting-plane method based on random walk
     output_random = solvers.random_walk_solver.RandomWalkSolver(model["F"],params)
     # print(output_random)
-    # Use dimension reduction method
-    output_reduction = solvers.dim_reduction_solver.DimensionReductionSolver(model["F"],params)
+    # # Use dimension reduction method
+    # output_reduction = solvers.dim_reduction_solver.DimensionReductionSolver(model["F"],params)
     # print(output_reduction)
+    output_grad = output_vai
+    output_reduction = output_vai
     
     # Update records
     total_samples[0] = ( total_samples[0] * t + output_grad["total"] ) / (t+1)

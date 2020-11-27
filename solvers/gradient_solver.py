@@ -39,9 +39,9 @@ def GradientSolver(F,params):
     # print(interval)
     
     # Iterate numbers and step size
-    T = math.ceil( max( d*(N**2)*sigma / (eps**2) * math.log(2/delta),
+    T = math.ceil( max( 128*d*(N**2)*sigma / (eps**2) * math.log(2/delta),
                        (d**2) * (L**2) / (eps**2),  
-                       (d**2)*(N**2) / (eps**2) * math.log(sigma*d**2/N**3)
+                       128*(d**2)*(N**2) / (eps**2) * math.log(sigma*d**2/N**3)
                        ) )
     M = max(sigma*math.sqrt(math.log( max(4*sigma*d*N*T / eps, 1) )), L) 
     eta =  N**2 / M / np.sqrt( T )
@@ -55,6 +55,9 @@ def GradientSolver(F,params):
     # Weighted average
     alpha = 0.5
     weight_cum = 0
+    # Early stopping
+    cnt = 0
+    f_old = np.inf
     
     # Truncated subgradient descent
     for t in range(T):
@@ -82,20 +85,26 @@ def GradientSolver(F,params):
         # Update the cumulative weight
         weight_cum = new_weight
         
-        if t % (interval * 3) == 0:
+        if t % (interval * 1) == 0:
             f, _ = Lovasz(F,x_avg,params)
-            # print(f_new, hat_F, f)
+            print(f_new, hat_F, f)
             # print(sub_grad)
         
         # Early stopping
         if t % interval == interval - 1 and t >= 5 * interval:
+            print(cnt,f_new,f_old)
             # Decay is not sufficient
-            if f_new - f_old >= -eps / 2 / d:
+            if f_new - f_old >= 0:
+                cnt += 1
+            else:
+                cnt = 0
+                f_old = f_new
+            if cnt > 5:
                 break
 
-        if t % interval == interval - 1:
-            # Update f_old and f_new
-            f_old = f_new
+        # if t % interval == interval - 1 and f_new < f_old:
+        #     # Update f_old and f_new
+        #     f_old = f_new
     
     # Round to an integral point
     output_round = Round(F,x_avg,params)
