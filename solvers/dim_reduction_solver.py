@@ -240,7 +240,7 @@ def DimensionReductionSolver(F,params):
             output_uniform = UniformSolver(G, params_new)
             # Update the total number of points
             total_samples += output_uniform["total"]
-            print(params_new)
+            # print(params_new)
             # Optimal point
             x_uni = z + output_uniform["x_opt"] * v
             # print(x_uni)

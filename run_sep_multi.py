@@ -23,7 +23,7 @@ params = {}
 # Dimension and scale
 params["d"] = 3
 # params["N"] = int(sys.argv[1])
-params["N"] = 10
+params["N"] = 100
 # sub-Gaussian parameter
 params["sigma"] = 1e0
 
@@ -40,7 +40,7 @@ rate = np.zeros((4,))
 f_out = open("./results/sep_multi_" + str(params["d"]) + "_"\
              + str(params["N"]) + ".txt", "w")
 
-for t in range(1):
+for t in range(10):
     print(t)
     model = models.separable_model.SeparableModel(params)
     
@@ -85,17 +85,17 @@ for t in range(1):
     
     # Use truncated subgradient descent method
     output_grad = solvers.gradient_solver.GradientSolver(model["F"],params)
-    print(output_grad)
+    # print(output_grad)
     # Use Vaidya's cutting-plane method
     output_vai = solvers.vaidya_solver.VaidyaSolver(model["F"],params)
-    print(output_vai)
+    # print(output_vai)
     # output_grad = output_vai
     # Use cutting-plane method based on random walk
     output_random = solvers.random_walk_solver.RandomWalkSolver(model["F"],params)
-    print(output_random)
+    # print(output_random)
     # Use dimension reduction method
     output_reduction = solvers.dim_reduction_solver.DimensionReductionSolver(model["F"],params)
-    print(output_reduction)
+    # print(output_reduction)
     
     # Update records
     total_samples[0] = ( total_samples[0] * t + output_grad["total"] ) / (t+1)
@@ -108,19 +108,19 @@ for t in range(1):
     gaps[2] = ( gaps[2] * t + model["f"](output_random["x_opt"]) - f_opt ) / (t+1)
     gaps[3] = ( gaps[3] * t + model["f"](output_reduction["x_opt"]) - f_opt ) / (t+1)
     
-    if model["f"]([output_grad["x_opt"]]) - f_opt <= params["eps"]:
+    if model["f"](output_grad["x_opt"]) - f_opt <= params["eps"]:
         rate[0] = ( rate[0] * t + 1 ) / (t+1)
     else:
         rate[0] = ( rate[0] * t + 0 ) / (t+1)
-    if model["f"]([output_vai["x_opt"]]) - f_opt <= params["eps"]:
+    if model["f"](output_vai["x_opt"]) - f_opt <= params["eps"]:
         rate[1] = ( rate[1] * t + 1 ) / (t+1)
     else:
         rate[1] = ( rate[1] * t + 0 ) / (t+1)
-    if model["f"]([output_random["x_opt"]]) - f_opt <= params["eps"]:
+    if model["f"](output_random["x_opt"]) - f_opt <= params["eps"]:
         rate[2] = ( rate[2] * t + 1 ) / (t+1)
     else:
         rate[2] = ( rate[2] * t + 0 ) / (t+1)
-    if model["f"]([output_reduction["x_opt"]]) - f_opt <= params["eps"]:
+    if model["f"](output_reduction["x_opt"]) - f_opt <= params["eps"]:
         rate[3] = ( rate[3] * t + 1 ) / (t+1)
     else:
         rate[3] = ( rate[3] * t + 0 ) / (t+1)
