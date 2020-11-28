@@ -57,7 +57,7 @@ def RandomWalkSolver(F,params):
     for t in range(T):
         
         # Separation oracle
-        so = SO(F,z,eps/4*min(N,2**t+N/4),delta/4,params)
+        so = SO(F,z,eps/8*min(N,N),delta/4,params)
         c = -so["hat_grad"]
         hat_F = so["hat_F"]
         # Update total samples
@@ -97,7 +97,7 @@ def RandomWalkSolver(F,params):
         
         # Early stopping
         F_new = np.mean(S[-3:,-1])
-        if F_new >= F_old - eps / 2 / d:
+        if F_new >= F_old - eps / 4 / d or F_new < eps / 2:
             break
         else:
             F_old = F_new

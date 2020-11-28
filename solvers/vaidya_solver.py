@@ -59,7 +59,7 @@ def VaidyaSolver(F,params):
         if np.min(alpha) >= q:
             # Separation oracle
             # ti = time.time()
-            so = SO(F,z,eps/4*min(N,2**t+N/4),delta/4,params)
+            so = SO(F,z,eps/8*min(N,N),delta/4,params)
             c = -so["hat_grad"]
             hat_F = so["hat_F"]
             # beta = np.sum(c*z) - math.sqrt( 2*(c.T @ H_inv) @ c\
@@ -113,8 +113,8 @@ def VaidyaSolver(F,params):
             H_inv,alpha,nabla,Q = Auxiliary(z,A,b)
         
         # Early stopping
-        F_new = np.mean(S[-1:,-1])
-        if F_new >= F_old - eps / 3 / d:
+        F_new = np.mean(S[-3:,-1])
+        if F_new >= F_old - eps / 5 / d or F_new < eps / 2:
             break
         else:
             F_old = F_new

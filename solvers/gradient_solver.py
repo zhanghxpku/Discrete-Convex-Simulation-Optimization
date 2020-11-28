@@ -40,8 +40,8 @@ def GradientSolver(F,params):
     
     # Iterate numbers and step size
     T = math.ceil( max( 128*d*(N**2)*sigma / (eps**2) * math.log(2/delta),
-                       (d**2) * (L**2) / (eps**2),  
-                       128*(d**2)*(N**2) / (eps**2) * math.log(sigma*d**2/N**3)
+                        (d**2) * (L**2) / (eps**2),  
+                        128*(d**2)*(N**2) / (eps**2) * math.log(sigma*d**2/N**3)
                        ) )
     M = max(sigma*math.sqrt(math.log( max(4*sigma*d*N*T / eps, 1) )), L) 
     eta =  N**2 / M / np.sqrt( T )
@@ -58,6 +58,7 @@ def GradientSolver(F,params):
     # Early stopping
     cnt = 0
     f_old = np.inf
+    f_new = 1
     
     # Truncated subgradient descent
     for t in range(T):
@@ -72,7 +73,7 @@ def GradientSolver(F,params):
         #     print("Truncated!")
         
         # Update and project the current point
-        x = x - eta * sub_grad
+        x = x - f_new / math.sqrt(N) * 3 * eta * sub_grad
         x = np.clip(x,1,N)
         
         # Update the moving average
@@ -87,14 +88,14 @@ def GradientSolver(F,params):
         
         if t % (interval * 1) == 0:
             f, _ = Lovasz(F,x_avg,params)
-            print(f_new, hat_F, f)
+            # print(f_new, hat_F, f)
             # print(sub_grad)
         
         # Early stopping
         if t % interval == interval - 1 and t >= 5 * interval:
-            print(cnt,f_new,f_old)
+            # print(cnt,f_new,f_old)
             # Decay is not sufficient
-            if f_new - f_old >= 0:
+            if f_new - f_old >= -eps / d / 5 or f_new < eps * 0.8:
                 cnt += 1
             else:
                 cnt = 0
