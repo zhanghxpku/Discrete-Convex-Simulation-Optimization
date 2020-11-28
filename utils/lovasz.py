@@ -158,7 +158,7 @@ def SO(F,x,eps,delta,params):
         hat_grad /= num_samples
     
     # Return
-    return { "hat_F":hat_F, "hat_grad":hat_grad, "total":num_samples*d }
+    return { "hat_F":hat_F, "hat_grad":hat_grad, "total":num_samples*d*2 }
     
     
     

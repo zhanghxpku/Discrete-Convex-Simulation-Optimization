@@ -7,7 +7,7 @@ Created on Fri Nov 27 11:13:51 2020
 
 import math
 import numpy as np
-np.random.seed(101)
+np.random.seed(1001)
 import matplotlib.pyplot as plt
 
 import models
@@ -21,9 +21,9 @@ params = {}
 
 # Generate the model
 # Dimension and scale
-params["d"] = 9
+params["d"] = 6
 # params["N"] = int(sys.argv[1])
-params["N"] = 100
+params["N"] = 150
 # sub-Gaussian parameter
 params["sigma"] = 1e0
 
@@ -96,6 +96,7 @@ for t in range(10):
     # output_reduction = solvers.dim_reduction_solver.DimensionReductionSolver(model["F"],params)
     # print(output_reduction)
     output_vai = output_grad
+    # output_grad = output_vai
     output_random = output_vai
     output_reduction = output_grad
     

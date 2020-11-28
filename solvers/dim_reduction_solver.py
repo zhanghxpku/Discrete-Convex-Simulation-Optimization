@@ -85,7 +85,7 @@ def DimensionReductionSolver(F,params):
             basis = LLL(L_cur,K)
             # Choose the shortest vector
             norm = np.diag( (basis @ K) @ basis.T )
-            # print(np.min(norm))
+            print(np.min(norm))
 
             # Stopping criterion
             if np.min(norm) < 1e0 / d**2:

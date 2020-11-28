@@ -73,7 +73,7 @@ def RandomWalkSolver(F,params):
         temp = np.concatenate((z,[hat_F]),axis=0) # (d+1) vector
         temp = np.reshape(temp,(1,d+1)) # 1*(d+1) vector
         S = np.concatenate((S,temp),axis=0)
-        # print(hat_F)
+        print(hat_F)
         
         # Warm-start distribution
         # print(A.shape,y_set.shape,b.shape)
@@ -97,7 +97,7 @@ def RandomWalkSolver(F,params):
         
         # Early stopping
         F_new = np.mean(S[-3:,-1])
-        if F_new >= F_old - eps / 4 / d or F_new < eps / 2:
+        if F_new >= F_old - eps / 4 / d:
             break
         else:
             F_old = F_new

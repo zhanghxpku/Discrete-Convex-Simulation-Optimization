@@ -48,8 +48,7 @@ def SeparableModel(params):
                                              ** (len(np.array(x).shape)-1) )
     F_hat = lambda x, n=1: f(x) + sigma / math.sqrt(n)\
     * np.random.randn( (np.array(x).shape[-1]) ** (len(np.array(x).shape)-1))
-    L = np.sqrt(max(np.linalg.norm( x_opt ,np.inf ), 
-                    np.linalg.norm( N+1-x_opt, np.inf ))) * (1-1/math.sqrt(2))
+    L = np.sum(np.sqrt( np.maximum( x_opt, N+1-x_opt ) ))
     
     opt = x_opt
     

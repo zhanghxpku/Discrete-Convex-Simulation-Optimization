@@ -35,17 +35,17 @@ def GradientSolver(F,params):
     f_old = 0
     f_new = 0
     # Check stopping criterion every 1000 iterations
-    interval = RequiredSamples(delta/2,eps/5,params)
-    # print(interval)
+    interval = RequiredSamples(delta/4,eps/16/np.sqrt(d),params)
+    print(interval)
     
     # Iterate numbers and step size
-    T = math.ceil( max( 128*d*(N**2)*sigma / (eps**2) * math.log(2/delta),
+    T = math.ceil( max( 64*d*(N**2)*sigma / (eps**2) * math.log(2/delta),
                         (d**2) * (L**2) / (eps**2),  
-                        128*(d**2)*(N**2) / (eps**2) * math.log(sigma*d**2/N**3)
+                        64*(d**2)*(N**2) / (eps**2) * math.log(sigma*d**2/N**3)
                        ) )
     M = max(sigma*math.sqrt(math.log( max(4*sigma*d*N*T / eps, 1) )), L) 
-    eta =  N**2 / M / np.sqrt( T )
-    # print(T,eta,M)
+    eta =  N / M / np.sqrt( T )
+    print(T,eta,M)
     
     # Start timing
     start_time = time.time()
@@ -59,12 +59,14 @@ def GradientSolver(F,params):
     cnt = 0
     f_old = np.inf
     f_new = 1
+    # interval = int(interval/10)
     
     # Truncated subgradient descent
     for t in range(T):
         
         # Compute subgradient
         hat_F, sub_grad = Lovasz(F,x,params)
+        
         total_samples += (2*d)
         
         # Truncate subgradient
@@ -73,7 +75,7 @@ def GradientSolver(F,params):
         #     print("Truncated!")
         
         # Update and project the current point
-        x = x - f_new / math.sqrt(N) * 3 * eta * sub_grad
+        x = x - 150 * d / int(t/interval+1) * eta * sub_grad
         x = np.clip(x,1,N)
         
         # Update the moving average
@@ -90,15 +92,17 @@ def GradientSolver(F,params):
             f, _ = Lovasz(F,x_avg,params)
             # print(f_new, hat_F, f)
             # print(sub_grad)
+            print(x)
         
         # Early stopping
-        if t % interval == interval - 1 and t >= 5 * interval:
-            # print(cnt,f_new,f_old)
+        if t % interval == interval - 1 and t >= 0 * interval:
+            print(cnt,f_new,f_old,total_samples)
             # Decay is not sufficient
-            if f_new - f_old >= -eps / d / 5 or f_new < eps * 0.8:
+            if f_new - f_old >= -eps / np.sqrt(N):
                 cnt += 1
             else:
                 cnt = 0
+            if f_new < f_old:
                 f_old = f_new
             if cnt > 5:
                 break
