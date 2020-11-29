@@ -74,6 +74,11 @@ def DimensionReductionSolver(F,params):
         # Use random walk method
         for K,z_new,A_new,b_new,y_new,s in RandomWalkApproximator(F,C,y_set,A,
                                                                   b,params):
+            # Check early stopping
+            if K is None:
+                early_stop = True
+                break
+            
             # Number of samples
             total_samples += so_samples*d
             # Update set S
@@ -85,7 +90,7 @@ def DimensionReductionSolver(F,params):
             basis = LLL(L_cur,K)
             # Choose the shortest vector
             norm = np.diag( (basis @ K) @ basis.T )
-            print(np.min(norm))
+            # print(np.min(norm))
 
             # Stopping criterion
             if np.min(norm) < 1e0 / d**2:
@@ -99,6 +104,10 @@ def DimensionReductionSolver(F,params):
                 # Update centroid
                 z_k = z_new
                 break
+        
+        # Check if intersection is empty
+        if early_stop:
+            break
         
         # Dimension reduction
         L[d-d_cur:,:] = L_cur
@@ -130,8 +139,12 @@ def DimensionReductionSolver(F,params):
             model.optimize()
             
             z = np.zeros((d,))
-            for i in range(d):
-                z[i] = x[i].X
+            try:
+                for i in range(d):
+                    z[i] = x[i].X
+            except AttributeError:
+                early_stop = True
+                break
         
         # Construct the hyperplane v^T y = v_y
         v_y = np.sum( (v-z)*z_k ) + round( np.sum( z * z_k ) )
@@ -308,7 +321,8 @@ def RandomWalkApproximator(F,Y,y_in,A_in,b_in,params,centroid=False):
     # print(y_bar,Y)
     
     # Generate the uniform distribution in P
-    y_set = RandomWalk(y_set,Y,A,b,params)    
+    M = math.ceil(5 * 20 * d * math.log(d+1) * max( 20, math.log(d) ))
+    y_set = RandomWalk(y_set,Y,A,b,params,M)
     # Approximate centroid
     y_bar = np.mean(y_set,axis=1,keepdims=True)
     
@@ -345,6 +359,11 @@ def RandomWalkApproximator(F,Y,y_in,A_in,b_in,params,centroid=False):
         # print(A.shape,y_set.shape,b.shape)
         violation = np.min(A @ y_set - b, axis=0)
         y_set = y_set[:,violation >= 0]
+        
+        # Infeasible
+        if y_set.shape[1] == 0:
+            yield None, None, None, None, None, None
+        
         # Estimate the covarance matrix
         y_bar = np.mean(y_set,axis=1,keepdims=True)
         temp = y_set - y_bar
@@ -359,7 +378,8 @@ def RandomWalkApproximator(F,Y,y_in,A_in,b_in,params,centroid=False):
         Y -= u * np.eye(d)
         
         # Update uniform distribution in P
-        y_set = RandomWalk(y_set,Y,A,b,params)
+        M = math.ceil(5 * 20 * d * math.log(d+1) * max( 20, math.log(d) ))
+        y_set = RandomWalk(y_set,Y,A,b,params,M)
 
         # Approximate centroid and covariance
         M = int(y_set.shape[1] / 2)

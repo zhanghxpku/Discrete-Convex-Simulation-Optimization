@@ -59,7 +59,7 @@ def VaidyaSolver(F,params):
         if np.min(alpha) >= q:
             # Separation oracle
             # ti = time.time()
-            so = SO(F,z,eps/8*min(N,2**t*(N*0.5)),delta/4,params)
+            so = SO(F,z,eps/8*min(N,2**t*(N*0.25)),delta/4,params)
             c = -so["hat_grad"]
             hat_F = so["hat_F"]
             # beta = np.sum(c*z) - math.sqrt( 2*(c.T @ H_inv) @ c\
@@ -68,7 +68,7 @@ def VaidyaSolver(F,params):
             # print(time.time() - ti)
             # Update total samples
             total_samples += so["total"]
-            print(total_samples)
+            # print(total_samples)
             
             # Update A and b
             c = np.reshape(c,(1,d))

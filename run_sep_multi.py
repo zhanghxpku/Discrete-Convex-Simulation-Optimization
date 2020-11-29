@@ -21,14 +21,15 @@ params = {}
 
 # Generate the model
 # Dimension and scale
-params["d"] = 6
+params["d"] = 50
 # params["N"] = int(sys.argv[1])
-params["N"] = 150
+params["N"] = 10
 # sub-Gaussian parameter
 params["sigma"] = 1e0
 
 # Optimality criteria
-params["eps"] = (math.factorial(params["d"]))**(1/params["d"]) / 5
+params["eps"] = (math.factorial(params["d"]))**(1/params["d"]) / 5\
+                    if params["d"] < 60 else params["d"] / math.exp(1) / 5
 params["delta"] = 1e-6
 
 # Record average simulation runs and optimality gaps
@@ -84,10 +85,10 @@ for t in range(10):
     f_opt = model["f"](model["x_opt"])
     
     # # Use truncated subgradient descent method
-    output_grad = solvers.gradient_solver.GradientSolver(model["F"],params)
+    # output_grad = solvers.gradient_solver.GradientSolver(model["F"],params)
     # print(output_grad)
     # Use Vaidya's cutting-plane method
-    # output_vai = solvers.vaidya_solver.VaidyaSolver(model["F"],params)
+    output_vai = solvers.vaidya_solver.VaidyaSolver(model["F"],params)
     # print(output_vai)
     # Use cutting-plane method based on random walk
     # output_random = solvers.random_walk_solver.RandomWalkSolver(model["F"],params)
@@ -95,10 +96,11 @@ for t in range(10):
     # # Use dimension reduction method
     # output_reduction = solvers.dim_reduction_solver.DimensionReductionSolver(model["F"],params)
     # print(output_reduction)
-    output_vai = output_grad
-    # output_grad = output_vai
+    # output_vai = output_grad
+    output_grad = output_vai
     output_random = output_vai
-    output_reduction = output_grad
+    output_reduction = output_random
+    # output_vai = output_reduction
     
     # Update records
     total_samples[0] = ( total_samples[0] * t + output_grad["total"] ) / (t+1)

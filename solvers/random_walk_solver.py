@@ -97,7 +97,7 @@ def RandomWalkSolver(F,params):
         
         # Early stopping
         F_new = np.mean(S[-3:,-1])
-        if F_new >= F_old - eps / 4 / d:
+        if F_new >= F_old - eps / 2 / np.sqrt(N):
             break
         else:
             F_old = F_new
@@ -127,7 +127,8 @@ def RandomWalk(y_set,Y,A,b,params,M=None):
         M = math.ceil(50 * 20 * d * math.log(d+1) * max( 20, math.log(d) ))
     # M = 800
     # Number of steps to approximate the uniform measure in P
-    K = math.ceil(d**3 * 2e4)
+    K = math.ceil(d**3 * 2e3)
+    # print(K)
     # K = 4000
     
     # Square root of covariance matrix

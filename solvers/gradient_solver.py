@@ -36,7 +36,7 @@ def GradientSolver(F,params):
     f_new = 0
     # Check stopping criterion every 1000 iterations
     interval = RequiredSamples(delta/4,eps/16/np.sqrt(d),params)
-    print(interval)
+    # print(interval)
     
     # Iterate numbers and step size
     T = math.ceil( max( 64*d*(N**2)*sigma / (eps**2) * math.log(2/delta),
@@ -45,7 +45,7 @@ def GradientSolver(F,params):
                        ) )
     M = max(sigma*math.sqrt(math.log( max(4*sigma*d*N*T / eps, 1) )), L) 
     eta =  N / M / np.sqrt( T )
-    print(T,eta,M)
+    # print(T,eta,M)
     
     # Start timing
     start_time = time.time()
@@ -92,11 +92,11 @@ def GradientSolver(F,params):
             f, _ = Lovasz(F,x_avg,params)
             # print(f_new, hat_F, f)
             # print(sub_grad)
-            print(x)
+            # print(x)
         
         # Early stopping
         if t % interval == interval - 1 and t >= 0 * interval:
-            print(cnt,f_new,f_old,total_samples)
+            # print(cnt,f_new,f_old,total_samples)
             # Decay is not sufficient
             if f_new - f_old >= -eps / np.sqrt(N):
                 cnt += 1
@@ -104,7 +104,7 @@ def GradientSolver(F,params):
                 cnt = 0
             if f_new < f_old:
                 f_old = f_new
-            if cnt > 5:
+            if cnt > 2:
                 break
 
         # if t % interval == interval - 1 and f_new < f_old:

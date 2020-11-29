@@ -18,8 +18,8 @@ import solvers
 params = {}
 
 # Dimension and scale
-params["d"] = 7
-params["N"] = 100
+params["d"] = 1
+params["N"] = 150
 
 # Optimality criteria
 params["eps"] = math.log(params["d"]+1,2) / 5
@@ -49,17 +49,21 @@ if "f" in model:
         y[i] = model["f"]([z])
     
     plt.plot(x,y)
+    plt.xlabel("N")
+    plt.ylabel("Objestive value")
 else:
     # Plot the function
     x = np.linspace(1,params["N"],params["N"])
     y = np.zeros((params["N"],))
     
     for i,z in enumerate(x):
-        for _ in range(20):
+        for _ in range(100):
             y[i] += model["F"]([z])
-    y /= 20
+    y /= 100
     
     plt.plot(x,y)
+    plt.xlabel("N")
+    plt.ylabel("Average waiting time")
 
 # # Use adaptive sampling algorithm
 # output_ada = solvers.adaptive_solver.AdaptiveSolver(model["F"],params)
