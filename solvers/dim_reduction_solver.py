@@ -80,7 +80,7 @@ def DimensionReductionSolver(F,params):
                 break
             
             # Number of samples
-            total_samples += so_samples*d
+            total_samples += so_samples*(2*d)
             # Update set S
             S = np.concatenate((S,s),axis=1)
             # print(s[-1,0])
@@ -91,6 +91,7 @@ def DimensionReductionSolver(F,params):
             # Choose the shortest vector
             norm = np.diag( (basis @ K) @ basis.T )
             # print(np.min(norm))
+            # print(norm)
 
             # Stopping criterion
             if np.min(norm) < 1e0 / d**2:
@@ -105,14 +106,18 @@ def DimensionReductionSolver(F,params):
                 z_k = z_new
                 break
         
-        # Check if intersection is empty
-        if early_stop:
-            break
+        # # Check if intersection is empty
+        # if early_stop:
+        #     break
         
         # Dimension reduction
         L[d-d_cur:,:] = L_cur
         v = L_cur[0,:]
-        
+        # Project the lattice basis onto the subspace
+        L[d-d_cur+1:,:] = L[d-d_cur+1:,:] - L[d-d_cur+1:,:] @ v.reshape((d,1))\
+                                        @ v.reshape((d,1)).T / np.sum(v*v)
+        # print(L[d-d_cur+1:,:] @ v.reshape((d,1)))
+        print(v,L)        
         # Find the pre-image
         if d_cur == d:
             z = v
@@ -123,28 +128,39 @@ def DimensionReductionSolver(F,params):
             model.Params.OutputFlag = 0 # Controls output
             # model.Params.MIPGap = 1e-9
             # Variables
-            x = model.addVars(range(d), vtype=GRB.INTEGER, name="x")
+            x = model.addVars(range(2*d), vtype=GRB.INTEGER, name="x")
+            # alpha = model.addVar( vtype = GRB.CONTINUOUS, name="alpha" )
             # Add constraints
+            # model.addConstrs(
+            #     (gp.quicksum( (x[k]-x[d+k])*L[j,k] for k in range(d) ) == 0
+            #       for j in range(d-d_cur)),
+            #     name="c1")
             model.addConstrs(
-                (gp.quicksum( (x[k]-v[k])*L[j,k] for k in range(d) ) == 0
-                  for j in range(d-d_cur)),
-                name="c1")
-            # Set initial point
-            for i in range(d):
-                x[i].start = v[i]
-            model.update()
+                (gp.quicksum( (x[k]-x[d+k])*L[j,k] for k in range(d) )\
+                 == gp.quicksum( v[k]*L[j,k] for k in range(d) )
+                for j in range(d-d_cur,d)),
+                name="c3")
+            # model.addConstr(alpha <= 1)
+            # # Set initial point
+            # for i in range(d):
+            #     x[i].start = max(v[i],0)
+            #     x[i+d].start = -min(v[i],0)
+            # model.update()
             # Set the objective function as constant
             model.setObjective(0, GRB.MAXIMIZE)
             # Solve the feasibility problem
             model.optimize()
             
             z = np.zeros((d,))
-            try:
-                for i in range(d):
-                    z[i] = x[i].X
-            except AttributeError:
-                early_stop = True
-                break
+            for i in range(d):
+                z[i] = x[i].X - x[i+d].X
+            # print(z)
+            # try:
+            #     for i in range(d):
+            #         z[i] = x[i].X
+            # except AttributeError:
+            #     early_stop = True
+            #     break
         
         # Construct the hyperplane v^T y = v_y
         v_y = np.sum( (v-z)*z_k ) + round( np.sum( z * z_k ) )
@@ -181,11 +197,7 @@ def DimensionReductionSolver(F,params):
         # Update the uniform distribution in P
         C,z_k,y_set = next(RandomWalkApproximator(F,Y,y_set,A,b,params,True))
         # print(C,z_k,y_set.shape)
-        
-        # Project the lattice basis onto the subspace
-        L[d-d_cur+1:,:] = L[d-d_cur+1:,:] - L[d-d_cur+1:,:] @ v.reshape((d,1))\
-                                        @ v.reshape((d,1)).T / np.sum(v*v)
-        # print(L[d-d_cur+1:,:] @ v.reshape((d,1)))
+
         d_cur -= 1
     
     # If no early stopping
@@ -204,10 +216,10 @@ def DimensionReductionSolver(F,params):
         # model.Params.MIPGap = 1e-9
         # Variables
         x = model.addVars(range(d), vtype=GRB.INTEGER, ub=N, lb=1, name="x")
-        alpha = model.addVar( vtype = GRB.CONTINUOUS, name="alpha" )
+        alpha = model.addVars(range(2), vtype = GRB.CONTINUOUS, name="alpha" )
         # Add constraints
         model.addConstrs(
-            ( y_bar[k] + alpha * v[k] == x[k] for k in range(d) ),
+            ( y_bar[k] + (alpha[0]-alpha[1]) * v[k] == x[k] for k in range(d) ),
             name="c1")
         # Set initial point
         for i in range(d):

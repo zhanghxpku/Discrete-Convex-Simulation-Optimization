@@ -7,7 +7,7 @@ Created on Sun Nov  1 19:26:17 2020
 
 import math
 import numpy as np
-np.random.seed(101)
+np.random.seed(1007)
 import matplotlib.pyplot as plt
 
 import models
@@ -18,7 +18,7 @@ import solvers
 params = {}
 
 # Dimension and scale
-params["d"] = 1
+params["d"] = 6
 params["N"] = 150
 
 # Optimality criteria
@@ -81,9 +81,9 @@ else:
 # # Use cutting-plane method based on random walk
 # output_random = solvers.random_walk_solver.RandomWalkSolver(model["F"],params)
 # print(output_random)
-# # Use dimension reduction method
-# output_reduction = solvers.dim_reduction_solver.DimensionReductionSolver(model["F"],params)
-# print(output_reduction)
+# Use dimension reduction method
+output_reduction = solvers.dim_reduction_solver.DimensionReductionSolver(model["F"],params)
+print(output_reduction)
 
 
 
