@@ -15,6 +15,7 @@ from utils.lll import LLL
 from utils.subgaussian import RequiredSamples
 from .random_walk_solver import RandomWalk
 from .uniform_solver import UniformSolver
+from hsnf import column_style_hermite_normal_form
 
 import gurobipy as gp
 from gurobipy import GRB
@@ -92,7 +93,7 @@ def DimensionReductionSolver(F,params):
             basis = LLL(L_cur,K)
             # Choose the shortest vector
             norm = np.diag( (basis @ K) @ basis.T )
-            # print(np.min(norm))
+            print(np.min(norm))
             # print(norm)
 
             # Stopping criterion
@@ -124,7 +125,7 @@ def DimensionReductionSolver(F,params):
         #     min_val[i] = np.min(np.abs(L_cur[i,np.abs(L_cur[i,:])>1e-8]))
         # L[d-d_cur:,:] = (L[d-d_cur:,:].T / min_val).T
         
-        print(v,L)
+        # print(v,L)
         # Find the pre-image
         if d_cur == d:
             z = v
@@ -166,6 +167,7 @@ def DimensionReductionSolver(F,params):
                 z[i] = x[i].X - x[i+d].X
             # print(z)
             Z[d-d_cur,:] = z
+            # print(Z)
             # try:
             #     for i in range(d):
             #         z[i] = x[i].X
@@ -212,8 +214,11 @@ def DimensionReductionSolver(F,params):
         # Project the lattice basis onto the subspace
         # L[d-d_cur+1:,:] = L[d-d_cur+1:,:] - L[d-d_cur+1:,:] @ v.reshape((d,1))\
         #                                 @ v.reshape((d,1)).T / np.sum(v*v)
-        # Compute a basis in the new space
-        
+        # Compute a basis by Hermite normal form
+        _, R = column_style_hermite_normal_form(Z[:d-d_cur+1,:])
+        V = R[:,d-d_cur+1:]
+        L[d-d_cur+1:,:] = (V @ np.linalg.inv(V.T @ V)).T
+        print(L[d-d_cur+1:,:])
         d_cur -= 1
     
     # If no early stopping
@@ -222,8 +227,6 @@ def DimensionReductionSolver(F,params):
         v = L[-1,:] # Direction of the line
         y_bar = np.mean(y_set,axis=1) # Point on the line
         # print(v,y_bar)
-        # v = np.array([1,0,0])
-        # y_bar = np.array([9.097,5,8])
         
         # Find an integral point on the line
         # Create a new model

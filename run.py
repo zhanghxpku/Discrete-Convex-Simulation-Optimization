@@ -7,7 +7,7 @@ Created on Sun Nov  1 19:26:17 2020
 
 import math
 import numpy as np
-np.random.seed(1007)
+np.random.seed(101)
 import matplotlib.pyplot as plt
 
 import models
@@ -19,7 +19,7 @@ params = {}
 
 # Dimension and scale
 params["d"] = 6
-params["N"] = 150
+params["N"] = 50
 
 # Optimality criteria
 params["eps"] = math.log(params["d"]+1,2) / 5
