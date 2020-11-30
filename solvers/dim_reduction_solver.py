@@ -47,6 +47,8 @@ def DimensionReductionSolver(F,params):
     d_cur = d
     # The basis of integral lattice
     L = np.eye(d)
+    # The pre-images
+    Z = np.zeros((d,d))
     
     # Record polytope Ax >= b
     # A = np.concatenate((np.eye(d),-np.eye(d)),axis=0)
@@ -68,7 +70,7 @@ def DimensionReductionSolver(F,params):
         
         # print(d_cur)
         # The current basis
-        L_cur = L[d-d_cur:,:]
+        L_cur = np.copy(L[d-d_cur:,:])
         
         # Iterate until we find a short basis vector
         # Use random walk method
@@ -111,21 +113,27 @@ def DimensionReductionSolver(F,params):
         #     break
         
         # Dimension reduction
-        L[d-d_cur:,:] = L_cur
+        # L[d-d_cur:,:] = L_cur
         v = L_cur[0,:]
-        # Project the lattice basis onto the subspace
-        L[d-d_cur+1:,:] = L[d-d_cur+1:,:] - L[d-d_cur+1:,:] @ v.reshape((d,1))\
-                                        @ v.reshape((d,1)).T / np.sum(v*v)
+        # L[d-d_cur+1:,:] = (L[d-d_cur+1:,:].T\
+        #                    / np.linalg.norm(L[d-d_cur+1:,:],axis=1)).T
         # print(L[d-d_cur+1:,:] @ v.reshape((d,1)))
-        print(v,L)        
+        # # Normalize the basis
+        # min_val = np.zeros((d_cur,))
+        # for i in range(d_cur):
+        #     min_val[i] = np.min(np.abs(L_cur[i,np.abs(L_cur[i,:])>1e-8]))
+        # L[d-d_cur:,:] = (L[d-d_cur:,:].T / min_val).T
+        
+        print(v,L)
         # Find the pre-image
         if d_cur == d:
             z = v
+            Z[0,:] = v
         else:
             # Solve for z
             # Create a new model
             model = gp.Model("pre-image")
-            model.Params.OutputFlag = 0 # Controls output
+            model.Params.OutputFlag = 1 # Controls output
             # model.Params.MIPGap = 1e-9
             # Variables
             x = model.addVars(range(2*d), vtype=GRB.INTEGER, name="x")
@@ -148,6 +156,8 @@ def DimensionReductionSolver(F,params):
             # model.update()
             # Set the objective function as constant
             model.setObjective(0, GRB.MAXIMIZE)
+            # model.setObjective(gp.quicksum((x[k]-x[d+k]-v[k])*(x[k]-x[d+k]-v[k]) for k in range(d)),
+            #                    GRB.MINIMIZE)
             # Solve the feasibility problem
             model.optimize()
             
@@ -155,6 +165,7 @@ def DimensionReductionSolver(F,params):
             for i in range(d):
                 z[i] = x[i].X - x[i+d].X
             # print(z)
+            Z[d-d_cur,:] = z
             # try:
             #     for i in range(d):
             #         z[i] = x[i].X
@@ -197,7 +208,12 @@ def DimensionReductionSolver(F,params):
         # Update the uniform distribution in P
         C,z_k,y_set = next(RandomWalkApproximator(F,Y,y_set,A,b,params,True))
         # print(C,z_k,y_set.shape)
-
+        
+        # Project the lattice basis onto the subspace
+        # L[d-d_cur+1:,:] = L[d-d_cur+1:,:] - L[d-d_cur+1:,:] @ v.reshape((d,1))\
+        #                                 @ v.reshape((d,1)).T / np.sum(v*v)
+        # Compute a basis in the new space
+        
         d_cur -= 1
     
     # If no early stopping
