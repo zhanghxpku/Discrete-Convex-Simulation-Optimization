@@ -82,6 +82,11 @@ def DimensionReductionSolver(F,params):
                 early_stop = True
                 break
             
+            u = np.linalg.eigvalsh(K)
+            # print(u)
+            if np.sum(u > 1e-10) < d_cur:
+                continue
+            
             # Number of samples
             total_samples += so_samples*(2*d)
             # Update set S
@@ -91,18 +96,21 @@ def DimensionReductionSolver(F,params):
 
             # The LLL algorithm
             basis = LLL(L_cur,K)
+            # print(basis)
+            # print(K)
             # Choose the shortest vector
             norm = np.diag( (basis @ K) @ basis.T )
-            print(np.min(norm))
+            # print(np.min(norm))
             # print(norm)
 
             # Stopping criterion
             if np.min(norm) < 1e0 / d**2:
             # if np.min(norm) < 300:
                 i_short = np.argmin( norm )
-                basis[[0,i_short],:] = basis[[i_short,0],:]
+                L_cur[0,:] = basis[i_short,:]
+                # basis[[0,i_short],:] = basis[[i_short,0],:]
                 # Update the basis and point set
-                y_set, L_cur = y_new, basis
+                y_set = y_new
                 # Update A and b
                 A, b = A_new, b_new
                 # Update centroid
@@ -134,7 +142,7 @@ def DimensionReductionSolver(F,params):
             # Solve for z
             # Create a new model
             model = gp.Model("pre-image")
-            model.Params.OutputFlag = 1 # Controls output
+            model.Params.OutputFlag = 0 # Controls output
             # model.Params.MIPGap = 1e-9
             # Variables
             x = model.addVars(range(2*d), vtype=GRB.INTEGER, name="x")
@@ -218,7 +226,7 @@ def DimensionReductionSolver(F,params):
         _, R = column_style_hermite_normal_form(Z[:d-d_cur+1,:])
         V = R[:,d-d_cur+1:]
         L[d-d_cur+1:,:] = (V @ np.linalg.inv(V.T @ V)).T
-        print(L[d-d_cur+1:,:])
+        # print(L[d-d_cur+1:,:])
         d_cur -= 1
     
     # If no early stopping
@@ -238,12 +246,15 @@ def DimensionReductionSolver(F,params):
         alpha = model.addVars(range(2), vtype = GRB.CONTINUOUS, name="alpha" )
         # Add constraints
         model.addConstrs(
-            ( y_bar[k] + (alpha[0]-alpha[1]) * v[k] == x[k] for k in range(d) ),
+            ( y_bar[k] + (alpha[0]-alpha[1]) * v[k] <= x[k] + 1e-3 for k in range(d) ),
             name="c1")
-        # Set initial point
-        for i in range(d):
-            x[i].start = y_bar[i]
-        model.update()
+        model.addConstrs(
+            ( y_bar[k] + (alpha[0]-alpha[1]) * v[k] >= x[k] - 1e-3 for k in range(d) ),
+            name="c2")
+        # # Set initial point
+        # for i in range(d):
+        #     x[i].start = y_bar[i]
+        # model.update()
         # Set the objective function as constant
         model.setObjective(0, GRB.MAXIMIZE)
         # Solve the feasibility problem
@@ -301,7 +312,8 @@ def DimensionReductionSolver(F,params):
             # print(S)
         
         except AttributeError:
-            pass
+            print("One-dim problem failed.")
+            print(y_bar,v)
     
     # Find the point with minimal empirical mean in S
     i_min = np.argmin(S[-1,:])
@@ -352,7 +364,7 @@ def RandomWalkApproximator(F,Y,y_in,A_in,b_in,params,centroid=False):
     # print(y_bar,Y)
     
     # Generate the uniform distribution in P
-    M = math.ceil(5 * 20 * d * math.log(d+1) * max( 20, math.log(d) ))
+    M = math.ceil(50 * 20 * d * math.log(d+1) * max( 20, math.log(d) ))
     y_set = RandomWalk(y_set,Y,A,b,params,M)
     # Approximate centroid
     y_bar = np.mean(y_set,axis=1,keepdims=True)
@@ -409,8 +421,10 @@ def RandomWalkApproximator(F,Y,y_in,A_in,b_in,params,centroid=False):
         Y -= u * np.eye(d)
         
         # Update uniform distribution in P
+        # print("start")
         M = math.ceil(5 * 20 * d * math.log(d+1) * max( 20, math.log(d) ))
         y_set = RandomWalk(y_set,Y,A,b,params,M)
+        # print("end")
 
         # Approximate centroid and covariance
         M = int(y_set.shape[1] / 2)
