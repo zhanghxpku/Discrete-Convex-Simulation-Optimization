@@ -21,9 +21,9 @@ params = {}
 
 # Generate the model
 # Dimension and scale
-params["d"] = 50
+params["d"] = 6
 # params["N"] = int(sys.argv[1])
-params["N"] = 10
+params["N"] = 100
 # sub-Gaussian parameter
 params["sigma"] = 1e0
 
@@ -41,7 +41,7 @@ rate = np.zeros((4,))
 f_out = open("./results/sep_multi_" + str(params["d"]) + "_"\
              + str(params["N"]) + ".txt", "w")
 
-for t in range(10):
+for t in range(400):
     print(t)
     model = models.separable_model.SeparableModel(params)
     
@@ -87,20 +87,21 @@ for t in range(10):
     # # Use truncated subgradient descent method
     # output_grad = solvers.gradient_solver.GradientSolver(model["F"],params)
     # print(output_grad)
-    # Use Vaidya's cutting-plane method
-    output_vai = solvers.vaidya_solver.VaidyaSolver(model["F"],params)
+    # # Use Vaidya's cutting-plane method
+    # output_vai = solvers.vaidya_solver.VaidyaSolver(model["F"],params)
     # print(output_vai)
     # Use cutting-plane method based on random walk
-    # output_random = solvers.random_walk_solver.RandomWalkSolver(model["F"],params)
-    # print(output_random)
+    output_random = solvers.random_walk_solver.RandomWalkSolver(model["F"],params)
+    print(output_random["total"])
     # # Use dimension reduction method
     # output_reduction = solvers.dim_reduction_solver.DimensionReductionSolver(model["F"],params)
     # print(output_reduction)
     # output_vai = output_grad
-    output_grad = output_vai
-    output_random = output_vai
+    # output_grad = output_vai
+    # output_random = output_vai
     output_reduction = output_random
-    # output_vai = output_reduction
+    output_vai = output_reduction
+    output_grad = output_vai
     
     # Update records
     total_samples[0] = ( total_samples[0] * t + output_grad["total"] ) / (t+1)

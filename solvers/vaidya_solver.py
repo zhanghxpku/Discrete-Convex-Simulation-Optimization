@@ -59,7 +59,8 @@ def VaidyaSolver(F,params):
         if np.min(alpha) >= q:
             # Separation oracle
             # ti = time.time()
-            so = SO(F,z,eps/8*min(N,2**t*(N*0.25)),delta/4,params)
+            # print(z)
+            so = SO(F,z,eps/8*min(N,2**t*N/4),delta/4,params)
             c = -so["hat_grad"]
             hat_F = so["hat_F"]
             # beta = np.sum(c*z) - math.sqrt( 2*(c.T @ H_inv) @ c\
@@ -74,12 +75,13 @@ def VaidyaSolver(F,params):
             c = np.reshape(c,(1,d))
             A = np.concatenate((A,c), axis=0)
             b = np.concatenate((b,[beta]))
+            # print(A)
 
             # Update S
             temp = np.concatenate((z,[hat_F]),axis=0) # (d+1) vector
             temp = np.reshape(temp,(1,d+1)) # 1*(d+1) vector
             S = np.concatenate((S,temp),axis=0)
-            print(hat_F)
+            # print(hat_F)
             
             # Update volumetric center
             # Number of Newton steps
@@ -115,7 +117,7 @@ def VaidyaSolver(F,params):
         
         # Early stopping
         F_new = np.mean(S[-3:,-1])
-        if t >= 3 and F_new >= F_old - eps / 2 / np.sqrt(N):
+        if t >= 3 and F_new >= F_old - 2*eps / d / np.sqrt(N):
             break
         else:
             F_old = F_new

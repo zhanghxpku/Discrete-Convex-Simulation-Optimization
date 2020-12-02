@@ -42,7 +42,7 @@ def RandomWalkSolver(F,params):
     total_samples = 0
     
     # Number of points to approximate covariance (N in the paper)
-    M = math.ceil(5 * 10 * d * math.log(d+1) * max( 10, math.log(d) ))
+    M = math.ceil(50 * 20 * d * math.log(d+1) * max( 20, math.log(d) ))
     # # Number of steps to approximate the uniform measure in P
     # K = math.ceil(d**3 * 2e3)
     
@@ -57,8 +57,12 @@ def RandomWalkSolver(F,params):
     for t in range(T):
         
         # Separation oracle
-        so = SO(F,z,eps/8*min(N,N),delta/4,params)
+        # print(z)
+        so = SO(F,z,eps/8*min(N,2**t*N/4),delta/4,params)
         c = -so["hat_grad"]
+        # print(c)
+        # c = - np.ones((d,))
+        # c[0] = -1
         hat_F = so["hat_F"]
         # Update total samples
         total_samples += so["total"]
@@ -73,12 +77,15 @@ def RandomWalkSolver(F,params):
         temp = np.concatenate((z,[hat_F]),axis=0) # (d+1) vector
         temp = np.reshape(temp,(1,d+1)) # 1*(d+1) vector
         S = np.concatenate((S,temp),axis=0)
-        print(hat_F)
+        # print(hat_F)
+        # print(np.sum(c*x_opt),np.sum(c*z))
         
         # Warm-start distribution
         # print(A.shape,y_set.shape,b.shape)
-        violation = np.min(A @ y_set - b, axis=0)
+        # print(y_set.shape)
+        violation = np.min(A[-1:,:] @ y_set - b[-1:,:], axis=0)
         y_set = y_set[:,violation >= 0]
+        # print(y_set.shape)
         # Estimate the covarance matrix
         y_bar = np.mean(y_set,axis=1,keepdims=True)
         temp = y_set - y_bar
@@ -89,15 +96,16 @@ def RandomWalkSolver(F,params):
         # print(Y)
         
         # Approximate uniform distribution
-        y_set = RandomWalk(y_set,Y,A,b,params)
+        y_set = RandomWalk(y_set,Y,A,b,params,M)
         
         # Update analytical center
+        y_set = y_set[:,np.random.permutation(np.arange(2*M))]
         z = np.mean(y_set[:,:M],axis=1)
         y_set = y_set[:,M:]
         
         # Early stopping
         F_new = np.mean(S[-3:,-1])
-        if F_new >= F_old - eps / 2 / np.sqrt(N):
+        if F_new >= F_old - 2*eps / d / np.sqrt(N):
             break
         else:
             F_old = F_new
@@ -130,20 +138,22 @@ def RandomWalk(y_set,Y,A,b,params,M=None):
     K = math.ceil(d**3 * 2e3)
     # print(K)
     # K = 4000
+    m = y_set.shape[1]
     
-    # Square root of covariance matrix
-    U = np.real( sp.linalg.sqrtm(Y) )
-    # print(U)
-    
-    while y_set.shape[1] < 2*M:        
+    while y_set.shape[1] < 2*M + m:
+        # print(y_set.shape[1],2*M+m)
         # Num of points to be updated
-        n = min( 2*M - y_set.shape[1], y_set.shape[1] )
+        n = min( 2*M + m - y_set.shape[1], y_set.shape[1] )
         # Initial points
         y_update = np.copy(y_set[:,np.random.randint(0,y_set.shape[1],(n,))])
         # Ball walk step size
         eta = 1 / math.sqrt(d)
+        # Square root of covariance matrix
+        U = sp.linalg.sqrtm(Y)
+        # print(U)
         # Stopping steps
         stop_time = np.random.randint(0,K,(n,))
+        stop_time = K * np.ones((n,), dtype=np.int32)
         # print(M,stop_time.max())
         
         # Each update
@@ -162,8 +172,9 @@ def RandomWalk(y_set,Y,A,b,params,M=None):
                 u = np.random.randn(d,num)
                 norm = np.linalg.norm(u,axis=0,keepdims=True)
                 r = eta * np.random.uniform(0,1,(1,num)) ** (1/d)
+                u *= (r / norm)
                 # Update step
-                y_delta = (U @ u) * r / norm
+                y_delta = U @ u
                 # For checking the constraints
                 temp = y_update[:,ind] + y_delta
                 
@@ -184,12 +195,14 @@ def RandomWalk(y_set,Y,A,b,params,M=None):
                                     
         # Update the set of points
         y_set = np.concatenate((y_set,y_update),axis=1)
+        # # Update covariance matrix
+        # Y = np.zeros((d,d))
+        # # Estimate the covarance matrix
+        # y_bar = np.mean(y_set,axis=1,keepdims=True)
+        # temp = y_set - y_bar
+        # for i in range(y_set.shape[1]):
+        #     Y += ( temp[:,i:i+1] @ temp[:,i:i+1].T )
+        # Y /= y_set.shape[1]
+        # # print(Y)
             
-    return y_set
-
-
-
-
-
-
-
+    return y_set[:,m:]

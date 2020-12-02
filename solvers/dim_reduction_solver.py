@@ -85,7 +85,7 @@ def DimensionReductionSolver(F,params):
             u = np.linalg.eigvalsh(K)
             # print(u)
             if np.sum(u > 1e-10) < d_cur:
-                continue
+                break
             
             # Number of samples
             total_samples += so_samples*(2*d)
@@ -218,6 +218,9 @@ def DimensionReductionSolver(F,params):
         # Update the uniform distribution in P
         C,z_k,y_set = next(RandomWalkApproximator(F,Y,y_set,A,b,params,True))
         # print(C,z_k,y_set.shape)
+        # Remove negative eigenvalues
+        u = min( np.min(np.linalg.eigvalsh(C)), 0)
+        C -= u * np.eye(d)
         
         # Project the lattice basis onto the subspace
         # L[d-d_cur+1:,:] = L[d-d_cur+1:,:] - L[d-d_cur+1:,:] @ v.reshape((d,1))\
@@ -313,7 +316,7 @@ def DimensionReductionSolver(F,params):
         
         except AttributeError:
             print("One-dim problem failed.")
-            print(y_bar,v)
+            print(y_bar,L[-1,:])
     
     # Find the point with minimal empirical mean in S
     i_min = np.argmin(S[-1,:])
@@ -364,7 +367,7 @@ def RandomWalkApproximator(F,Y,y_in,A_in,b_in,params,centroid=False):
     # print(y_bar,Y)
     
     # Generate the uniform distribution in P
-    M = math.ceil(50 * 20 * d * math.log(d+1) * max( 20, math.log(d) ))
+    M = math.ceil(5 * 20 * d * math.log(d+1) * max( 20, math.log(d) ))
     y_set = RandomWalk(y_set,Y,A,b,params,M)
     # Approximate centroid
     y_bar = np.mean(y_set,axis=1,keepdims=True)
@@ -388,7 +391,7 @@ def RandomWalkApproximator(F,Y,y_in,A_in,b_in,params,centroid=False):
     while True:
 
         # Separation oracle
-        so = SO(F,y_bar[:,0],eps/4*min(N,N),delta/4,params)
+        so = SO(F,y_bar[:,0],eps/4*min(N,N/4),delta/4,params)
         c = -so["hat_grad"]
         hat_F = so["hat_F"]
         s = np.concatenate((y_bar,[[hat_F]]),axis=0)

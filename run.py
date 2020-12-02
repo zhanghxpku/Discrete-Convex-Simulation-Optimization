@@ -18,8 +18,8 @@ import solvers
 params = {}
 
 # Dimension and scale
-params["d"] = 6
-params["N"] = 50
+params["d"] = 1
+params["N"] = 150
 
 # Optimality criteria
 params["eps"] = math.log(params["d"]+1,2) / 5
@@ -28,9 +28,9 @@ params["delta"] = 1e-6
 
 # Generate the model
 params["sigma"] = 1e0 # sub-Gaussian parameter
-# model = models.queueing_model.QueueModel(params)
+model = models.queueing_model.QueueModel(params)
 # model = models.quadratic_model.QuadraticModel(params)
-model = models.separable_model.SeparableModel(params)
+# model = models.separable_model.SeparableModel(params)
 
 # Lipschitz constant and closed-form objective function
 if "L" in model:
@@ -48,9 +48,11 @@ if "f" in model:
     for i,z in enumerate(x):
         y[i] = model["f"]([z])
     
-    plt.plot(x,y)
+    s = np.ones(x.shape)
+    plt.scatter(x,y,s=s)
     plt.xlabel("N")
     plt.ylabel("Objestive value")
+    plt.savefig("./results/sqrt_sep_new/obj.png",bbox_inches='tight', dpi=300)
 else:
     # Plot the function
     x = np.linspace(1,params["N"],params["N"])
@@ -61,9 +63,11 @@ else:
             y[i] += model["F"]([z])
     y /= 100
     
-    plt.plot(x,y)
+    s = np.ones(x.shape)
+    plt.scatter(x,y,s=s)
     plt.xlabel("N")
     plt.ylabel("Average waiting time")
+    plt.savefig("./results/queue/obj.png",bbox_inches='tight', dpi=300)
 
 # # Use adaptive sampling algorithm
 # output_ada = solvers.adaptive_solver.AdaptiveSolver(model["F"],params)
@@ -81,9 +85,9 @@ else:
 # # Use cutting-plane method based on random walk
 # output_random = solvers.random_walk_solver.RandomWalkSolver(model["F"],params)
 # print(output_random)
-# Use dimension reduction method
-output_reduction = solvers.dim_reduction_solver.DimensionReductionSolver(model["F"],params)
-print(output_reduction)
+# # Use dimension reduction method
+# output_reduction = solvers.dim_reduction_solver.DimensionReductionSolver(model["F"],params)
+# print(output_reduction)
 
 
 
