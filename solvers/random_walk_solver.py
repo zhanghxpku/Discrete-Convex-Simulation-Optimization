@@ -58,7 +58,7 @@ def RandomWalkSolver(F,params):
         
         # Separation oracle
         # print(z)
-        so = SO(F,z,eps/8*min(N,2**t*N/4),delta/4,params)
+        so = SO(F,z,eps/8*min(N,N),delta/4,params)
         c = -so["hat_grad"]
         # print(c)
         # c = - np.ones((d,))
@@ -139,6 +139,10 @@ def RandomWalk(y_set,Y,A,b,params,M=None):
     # print(K)
     # K = 4000
     m = y_set.shape[1]
+    # Square root of covariance matrix
+    U = np.real(sp.linalg.sqrtm(Y))
+    # print(np.linalg.eigvalsh(Y))
+    # print(U[:3,:3])
     
     while y_set.shape[1] < 2*M + m:
         # print(y_set.shape[1],2*M+m)
@@ -148,9 +152,6 @@ def RandomWalk(y_set,Y,A,b,params,M=None):
         y_update = np.copy(y_set[:,np.random.randint(0,y_set.shape[1],(n,))])
         # Ball walk step size
         eta = 1 / math.sqrt(d)
-        # Square root of covariance matrix
-        U = sp.linalg.sqrtm(Y)
-        # print(U)
         # Stopping steps
         stop_time = np.random.randint(0,K,(n,))
         stop_time = K * np.ones((n,), dtype=np.int32)
@@ -192,7 +193,7 @@ def RandomWalk(y_set,Y,A,b,params,M=None):
                 block[ind[ valid ]] = 1
                 y_update[:,ind[valid]] = temp[:,valid]
             break
-                                    
+        
         # Update the set of points
         y_set = np.concatenate((y_set,y_update),axis=1)
         # # Update covariance matrix

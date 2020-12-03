@@ -57,7 +57,7 @@ def DimensionReductionSolver(F,params):
     A = np.zeros((0,d))
     b = np.zeros((0,1))
     # The initial uniform distribution in P
-    y_set = np.random.uniform(1,N,(d,400))
+    y_set = np.random.uniform(1,N,(d,math.ceil(50 * 20 * d * math.log(d+1) * max( 20, math.log(d) ))))
     # The initial ellipsoid
     # C_inv = (N-1)**(-2) * 12 * np.eye(d) # A in paper
     C = (N-1)**2 / 12 * np.eye(d) # A_inv in paper
@@ -367,7 +367,7 @@ def RandomWalkApproximator(F,Y,y_in,A_in,b_in,params,centroid=False):
     # print(y_bar,Y)
     
     # Generate the uniform distribution in P
-    M = math.ceil(5 * 20 * d * math.log(d+1) * max( 20, math.log(d) ))
+    M = math.ceil(50 * 20 * d * math.log(d+1) * max( 20, math.log(d) ))
     y_set = RandomWalk(y_set,Y,A,b,params,M)
     # Approximate centroid
     y_bar = np.mean(y_set,axis=1,keepdims=True)
@@ -422,6 +422,7 @@ def RandomWalkApproximator(F,Y,y_in,A_in,b_in,params,centroid=False):
         u = min(np.min(np.linalg.eigvalsh(Y)),0)
         # print(np.min(np.linalg.eigvalsh(Y)),u)
         Y -= u * np.eye(d)
+        # print(np.linalg.eigvalsh(Y))
         
         # Update uniform distribution in P
         # print("start")
