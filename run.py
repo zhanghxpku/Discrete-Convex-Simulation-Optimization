@@ -52,7 +52,7 @@ if "f" in model:
     plt.scatter(x,y,s=s)
     plt.xlabel("N")
     plt.ylabel("Objestive value")
-    plt.savefig("./results/sqrt_sep_new/obj.png",bbox_inches='tight', dpi=300)
+    # plt.savefig("./results/sqrt_sep_new/obj.png",bbox_inches='tight', dpi=300)
 else:
     # Plot the function
     x = np.linspace(1,params["N"],params["N"])
@@ -67,7 +67,7 @@ else:
     plt.scatter(x,y,s=s)
     plt.xlabel("N")
     plt.ylabel("Average waiting time")
-    plt.savefig("./results/queue/obj.png",bbox_inches='tight', dpi=300)
+    # plt.savefig("./results/queue/obj.png",bbox_inches='tight', dpi=300)
 
 # # Use adaptive sampling algorithm
 # output_ada = solvers.adaptive_solver.AdaptiveSolver(model["F"],params)
@@ -75,6 +75,9 @@ else:
 # # Use uniform sampling algorithm
 # output_uni = solvers.uniform_solver.UniformSolver(model["F"],params)
 # print(output_uni)
+# # Use lil'UCB algorithm
+output_uni = solvers.ucb_solver.LILUCBSolver(model["F"],params)
+print(output_uni)
 
 # # Use truncated subgradient descent method
 # output_grad = solvers.gradient_solver.GradientSolver(model["f"],params)
