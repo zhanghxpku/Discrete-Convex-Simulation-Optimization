@@ -21,10 +21,10 @@ min_val = np.zeros((15,))
 
 for N in range(10,160,10):
     i = 0
-    results = np.zeros((402,4))
+    results = np.zeros((102,4))
         
-    with open("./results/sqrt_sep/sep_"+str(N)+".txt") as f_in:
-    # with open("./results/queue/queue_"+str(N)+".txt") as f_in:
+    # with open("./results/sqrt_sep/sep_"+str(N)+".txt") as f_in:
+    with open("./results/queue/queue_"+str(N)+".txt") as f_in:
         for line in f_in:
             line = line.split(" ")
             if len(line) == 4:
@@ -76,24 +76,24 @@ yfit1 = cs1(xfit)
 plt.fill_between(xfit, yfit-yfit1, yfit+yfit1,color='r', alpha=0.1)
 
 # Plot the trend
-# curve3, = plt.plot( N_set, 
-#                     np.ceil(np.log(0.5*N_set+11))*4.9e4+stat[0,0]-4.6e4*math.log(10),
-#                     alpha=0.2, color="b" )
-# curve4, = plt.plot( N_set, 4.6e4 * np.ones(N_set.shape), alpha=0.2, color="r" )
 curve3, = plt.plot( N_set, 
-                    np.log(N_set)*1.4e5+stat[0,0]-1.4e5*math.log(10),
+                    np.ceil(np.log(0.5*N_set+11))*4.9e4+stat[0,0]-4.6e4*math.log(10),
                     alpha=0.2, color="b" )
-curve4, = plt.plot( N_set, 1.1e5 * np.ones(N_set.shape), alpha=0.2, color="r" )
+curve4, = plt.plot( N_set, 4.6e4 * np.ones(N_set.shape), alpha=0.2, color="r" )
+# curve3, = plt.plot( N_set, 
+#                     np.log(N_set)*1.4e5+stat[0,0]-1.4e5*math.log(10),
+#                     alpha=0.2, color="b" )
+# curve4, = plt.plot( N_set, 1.1e5 * np.ones(N_set.shape), alpha=0.2, color="r" )
 
 plt.legend([curve1,curve2,curve3,curve4],
-           ["AS","EAS","y = O(log N)","y = Const"],
+           ["AS","US","y = O([log N])","y = Const"],
            loc='center right')
 plt.xlabel("N")
-plt.ylabel("Expacted simulation cost")
+plt.ylabel("Sample complexity")
 # plt.title("Queueing Model")
-# plt.savefig("./results/queue/queue.png",bbox_inches='tight', dpi=300)
-plt.title("One-dim Separable Model")
-plt.savefig("./results/sqrt_sep/sep.png",bbox_inches='tight', dpi=300)
+plt.savefig("./results/queue/queue.png",bbox_inches='tight', dpi=300)
+# plt.title("Artificial Convex Model")
+# plt.savefig("./results/sqrt_sep/sep.png",bbox_inches='tight', dpi=300)
 
 
 # plt.figure()
