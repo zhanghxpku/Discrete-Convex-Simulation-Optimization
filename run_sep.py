@@ -25,10 +25,10 @@ params["d"] = 1
 # params["N"] = int(sys.argv[1])
 params["N"] = 150
 # sub-Gaussian parameter
-params["sigma"] = 3e0
+params["sigma"] = 1e0
 
 # Optimality criteria
-params["eps"] = 5e-1
+params["eps"] = 2e-1
 params["delta"] = 1e-6
 
 # Record average simulation runs and optimality gaps

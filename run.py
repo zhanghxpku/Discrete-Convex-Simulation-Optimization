@@ -19,15 +19,16 @@ params = {}
 
 # Dimension and scale
 params["d"] = 1
-params["N"] = 150
+params["N"] = 10
 
 # Optimality criteria
 params["eps"] = math.log(params["d"]+1,2) / 5
 # params["eps"] = math.log(params["d"]+1,2)*params["N"]**0.5 / 80
+params["eps"] = 1e0
 params["delta"] = 1e-6
 
 # Generate the model
-params["sigma"] = 1e0 # sub-Gaussian parameter
+params["sigma"] = 1e1 # sub-Gaussian parameter
 model = models.queueing_model.QueueModel(params)
 # model = models.quadratic_model.QuadraticModel(params)
 # model = models.separable_model.SeparableModel(params)
@@ -40,44 +41,44 @@ else:
     params["L"] = 1
     params["closed_form"] = False
 
-if "f" in model:
-    # Plot the function
-    x = np.linspace(1,params["N"],params["N"])
-    y = np.zeros((params["N"],))
+# if "f" in model:
+#     # Plot the function
+#     x = np.linspace(1,params["N"],params["N"])
+#     y = np.zeros((params["N"],))
     
-    for i,z in enumerate(x):
-        y[i] = model["f"]([z])
+#     for i,z in enumerate(x):
+#         y[i] = model["f"]([z])
     
-    s = np.ones(x.shape)
-    plt.scatter(x,y,s=s)
-    plt.xlabel("N")
-    plt.ylabel("Objestive value")
-    # plt.savefig("./results/sqrt_sep_new/obj.png",bbox_inches='tight', dpi=300)
-else:
-    # Plot the function
-    x = np.linspace(1,params["N"],params["N"])
-    y = np.zeros((params["N"],))
+#     s = np.ones(x.shape)
+#     plt.scatter(x,y,s=s)
+#     plt.xlabel("N")
+#     plt.ylabel("Objestive value")
+#     # plt.savefig("./results/sqrt_sep_new/obj.png",bbox_inches='tight', dpi=300)
+# else:
+#     # Plot the function
+#     x = np.linspace(1,params["N"],params["N"])
+#     y = np.zeros((params["N"],))
     
-    for i,z in enumerate(x):
-        for _ in range(100):
-            y[i] += model["F"]([z])
-    y /= 100
+#     for i,z in enumerate(x):
+#         for _ in range(100):
+#             y[i] += model["F"]([z])
+#     y /= 100
     
-    s = np.ones(x.shape)
-    plt.scatter(x,y,s=s)
-    plt.xlabel("N")
-    plt.ylabel("Average waiting time")
-    # plt.savefig("./results/queue/obj.png",bbox_inches='tight', dpi=300)
+#     s = np.ones(x.shape)
+#     plt.scatter(x,y,s=s)
+#     plt.xlabel("N")
+#     plt.ylabel("Average waiting time")
+#     # plt.savefig("./results/queue/obj.png",bbox_inches='tight', dpi=300)
 
 # # Use adaptive sampling algorithm
 # output_ada = solvers.adaptive_solver.AdaptiveSolver(model["F"],params)
 # print(output_ada)
-# # Use uniform sampling algorithm
-# output_uni = solvers.uniform_solver.UniformSolver(model["F"],params)
-# print(output_uni)
-# # Use lil'UCB algorithm
-output_uni = solvers.ucb_solver.LILUCBSolver(model["F"],params)
+# Use uniform sampling algorithm
+output_uni = solvers.uniform_solver.UniformSolver(model["F"],params)
 print(output_uni)
+# Use lil'UCB algorithm
+output_ucb = solvers.ucb_solver.LILUCBSolver(model["F"],params)
+print(output_ucb)
 
 # # Use truncated subgradient descent method
 # output_grad = solvers.gradient_solver.GradientSolver(model["f"],params)

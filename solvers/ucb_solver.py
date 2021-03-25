@@ -27,15 +27,15 @@ def LILUCBSolver(F,params):
     nu = params["delta"] if "delta" in params else 1e-6
     
     # Parameters of the algorithm
-    # beta = 1
-    # a = 9
-    # eps = 1e-2
-    # delta = ( nu*eps / 5 / (2+eps) ) ** ( 1 / (1+eps) )
-    # Heuristic parameters
-    beta = 1/2
-    a = 1 + 10 / N
-    eps = 0
-    delta = nu / 5
+    beta = 1
+    a = 9
+    eps = 1e-2
+    delta = ( nu*eps / 5 / (2+eps) ) ** ( 1 / (1+eps) )
+    # # Heuristic parameters
+    # beta = 1/2
+    # a = 1 + 10 / N
+    # eps = 0
+    # delta = nu / 5
 
     # Number of samples on each arm
     cur_samples = np.zeros((N,))
@@ -54,8 +54,8 @@ def LILUCBSolver(F,params):
         
         # Find the arm with maximal UCB
         deviation = np.log( np.log((1+eps)*cur_samples+2)/delta ) / cur_samples
-        deviation = (1+beta)*(1+np.sqrt(eps))*np.sqrt( 2*(1+eps)*deviation )
-        I_t = np.argmax( hat_F + deviation * sigma )
+        deviation = (1+beta)*(1+np.sqrt(eps))*np.sqrt( 2*(1+eps)*deviation * sigma )
+        I_t = np.argmax( hat_F + deviation )
         
         # Sample I_t
         hat_F[I_t] = ( hat_F[I_t] * cur_samples[I_t] - F([I_t+1]) )\
@@ -64,15 +64,20 @@ def LILUCBSolver(F,params):
         
         # Check the LS criterion
         bound = np.log( 2*N*np.log((1+eps)*cur_samples+2)/delta ) / cur_samples
-        bound = (1+np.sqrt(eps)) * sigma * np.sqrt( 2*(1+eps)*bound )
+        bound = (1+np.sqrt(eps)) * np.sqrt( 2*(1+eps)*bound * sigma )
         
         i_max = np.argmax(hat_F)
         lower = hat_F[i_max] - bound[i_max]
-        upper = np.max( [np.max(hat_F[:i_max]+bound[:i_max]),
-                       np.max(hat_F[i_max+1:]+bound[i_max+1:])] )
+        if i_max < N - 1 and i_max > 0:
+            upper = np.max( [np.max(hat_F[:i_max]+bound[:i_max]),
+                           np.max(hat_F[i_max+1:]+bound[i_max+1:])] )
+        elif i_max == N-1:
+            upper = np.max(hat_F[:i_max]+bound[:i_max])
+        else:
+            upper = np.max(hat_F[i_max+1:]+bound[i_max+1:])
         
-        if np.sum(cur_samples) % 10000 == 0:
-            print(lower,upper,np.sum(cur_samples))
+        # if np.sum(cur_samples) % 10000 == 0:
+        #     print(lower,upper,np.sum(cur_samples))
         if lower >= upper - eps0/2:
             break
     
@@ -169,7 +174,7 @@ def LILUCBSolver(F,params):
     #             break
     
     # Return the point with the minimal empirical mean
-    x_opt = np.argmax(hat_F)
+    x_opt = np.argmax(hat_F) + 1
     # Count simulation runs
     total_samples = np.sum(cur_samples)
     
