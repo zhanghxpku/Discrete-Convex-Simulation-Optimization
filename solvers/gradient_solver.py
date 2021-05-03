@@ -77,7 +77,7 @@ def GradientSolver(F,params):
         #     print("Truncated!")
         
         # Update and project the current point
-        x = x - 150 * d / int(t/interval+1) * eta * sub_grad
+        x = x - 50 / int(t/interval+1) * eta * sub_grad
         x = np.clip(x,1,N)
         
         # Update the moving average
@@ -90,14 +90,14 @@ def GradientSolver(F,params):
         # Update the cumulative weight
         weight_cum = new_weight
         
-        if t % (int(interval * 0.01)) == 0:
+        if t % (int(interval * 0.0005)) == 0:
             f, _ = Lovasz(F,x_avg,params)
             print(f_new, hat_F, f)
             # print(sub_grad)
-            # print(x)
+            print(x_avg)
         
         # Early stopping
-        if t % int(interval * 0.01) == int(interval * 0.01) - 1 and t >= 0 * interval:
+        if t % int(interval * 0.001) == int(interval * 0.001) - 1 and t >= 0 * interval:
             print(cnt,f_new,f_old,total_samples)
             # Decay is not sufficient
             if f_new - f_old >= -eps:
@@ -106,7 +106,7 @@ def GradientSolver(F,params):
                 cnt = 0
             if f_new < f_old:
                 f_old = f_new
-            if cnt > 2:
+            if cnt > 1:
                 break
 
         # if t % interval == interval - 1 and f_new < f_old:
