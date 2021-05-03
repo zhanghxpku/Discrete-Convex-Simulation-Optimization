@@ -45,6 +45,8 @@ def GradientSolver(F,params):
                        ) )
     M = max(sigma*math.sqrt(math.log( max(4*sigma*d*N*T / eps, 1) )), L) 
     eta =  N / M / np.sqrt( T )
+    # M = np.inf
+    # eta = N / sigma * np.sqrt(d / T)
     # print(T,eta,M)
     
     # Start timing
@@ -95,10 +97,10 @@ def GradientSolver(F,params):
             # print(x)
         
         # Early stopping
-        if t % interval == interval - 1 and t >= 0 * interval:
-            # print(cnt,f_new,f_old,total_samples)
+        if t % int(interval * 0.01) == int(interval * 0.01) - 1 and t >= 0 * interval:
+            print(cnt,f_new,f_old,total_samples)
             # Decay is not sufficient
-            if f_new - f_old >= -eps / np.sqrt(N):
+            if f_new - f_old >= -eps:
                 cnt += 1
             else:
                 cnt = 0

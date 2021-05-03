@@ -22,16 +22,16 @@ params = {}
 # Dimension and scale
 # params["N"] = int(sys.argv[1])
 # params["M"] = int(sys.argv[2])
-params["N"] = 10
+params["N"] = 5
 params["M"] = 5
 params["d"] = params["M"]
 
 # Optimality criteria
-params["eps"] = 1e0
+params["eps"] = 1e-1
 params["delta"] = 1e-6
 
 # Generate the model
-params["sigma"] = 5e0 # sub-Gaussian parameter
+params["sigma"] = 3e-1 # sub-Gaussian parameter
 
 # Record average simulation runs and optimality gaps
 total_samples = np.zeros((2,))
@@ -67,7 +67,7 @@ for t in range(1):
     #     y = np.zeros((params["N"],))
         
     #     for i,z in enumerate(x):
-    #         y[i] = model["f"]([z,5,5,5,5])
+    #         y[i] = model["f"]([z])
         
     #     plt.plot(x,y)
     # else:
@@ -76,9 +76,9 @@ for t in range(1):
     #     y = np.zeros((params["N"],))
         
     #     for i,z in enumerate(x):
-    #         for _ in range(300):
-    #             y[i] += model["F"]([z,5,5,5,5])
-    #     y /= 300
+    #         for _ in range(700):
+    #             y[i] += model["F"]([z,z,z,z,z])
+    #     y /= 700
     #     plt.plot(x,y)
     
 #     # # Write the obj values
@@ -117,5 +117,5 @@ f_out.close()
 
 # sample = np.zeros((5000,))
 # for i in range(5000):
-#     sample[i] = model["F"](np.array([5,5]))
+#     sample[i] = model["F"](np.array([5,5,5,5,5]))
 # print(np.std(sample))

@@ -48,21 +48,27 @@ def Lovasz(F,x,params, num_samples=1):
         # Compute the Lovasz extension and its subgradient
         lov = F(x_int)
         sub_grad = np.zeros((d,))
+        sub_grad_1 = np.zeros((d,))
         
         # The 0-th neighboring point
         x_old = x_int
+        f_old = lov
         for i in range(d):
             # The i-th neighboring point
             x_new = np.copy(x_old)
             x_new[alpha[i]] += 1
             
-            sub_grad[alpha[i]] = F(x_new) - F(x_old)
+            f_new = F(x_new)
+            sub_grad[alpha[i]] = f_new - F(x_old)
+            sub_grad_1[alpha[i]] = f_new - f_old
             # lov += sub_grad[alpha[i]] * x_loc[alpha[i]]
             
             # Update neighboring point
             x_old = x_new
-        
-        lov += np.sum( sub_grad * x_loc )
+            f_old = np.copy(f_new)
+
+        # print(lov+np.sum( sub_grad * x_loc ),lov+np.sum( sub_grad_1 * x_loc ))
+        lov += np.sum( sub_grad_1 * x_loc )
     
     return float(lov), sub_grad
 

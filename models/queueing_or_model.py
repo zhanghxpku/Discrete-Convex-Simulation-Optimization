@@ -17,8 +17,23 @@ def QueueORModel(params):
     """
     
     # Service time
-    mean = (0.75,0.65)
-    var = (0.1,0.1)
+    mean = (0.2,0.65)
+    var = (0.01,0.1)
+    # Compute the parameters of log-normal dist
+    s = np.sqrt(np.log( (1 + np.sqrt(1 + 4*var[0])) / 2))
+    loc = mean[0] - np.exp(s**2/2)
+    service = lambda size: stats.lognorm.rvs(s,loc=loc,size=size)
+    
+    return {"F": lambda x: WaitingTime(x,service,params)}
+
+def QueueRegORModel(params):
+    """
+    Generate the objective function with a regularization
+    """
+    
+    # Service time
+    mean = (0.2,0.65)
+    var = (0.01,0.1)
     # Compute the parameters of log-normal dist
     s = np.sqrt(np.log( (1 + np.sqrt(1 + 4*var[0])) / 2))
     loc = mean[0] - np.exp(s**2/2)
@@ -38,10 +53,10 @@ def WaitingTime(x,service,params):
     Gamma_1 = stats.uniform.rvs(0.75,0.5)
     
     # Generate intensity functions (i-th hour)
-    lambda_1 = lambda t, i: Gamma_1 * ( 65 + (20 + 15 * np.sin(2*np.pi/M*i)) * np.sin(0.3*t) )
+    lambda_1 = lambda t, i: Gamma_1 * ( 30 + (40 + 35 * np.sin(2*np.pi/M*i)) * np.sin(0.3*t) )
     
     # Maximal rates
-    max_1 = 100 * Gamma_1
+    max_1 = 105 * Gamma_1
     
     # The total waiting time
     t1, n1 = SingleQueue(x,lambda_1,max_1,service,params)
@@ -64,31 +79,38 @@ def SingleQueue(x,intensity,max_rate,service_t,params):
     wait_time = 0
     # The finishing time of each server
     finish_time = np.zeros((N,))
+    # Total number of coustomers
+    customer_num = 0
     
     # For the k-th hour
     for k in range(M):
         # Randomly choose x[k] servers to work
-        if abs(x[k] - int(x[k])) > 0.01:
-            print(x[k])
         active_ind = np.random.choice(np.arange(N), int(x[k]), False)
-        finish_time_ac = np.ones((int(x[k]),)) * k * T
-        old_ind = finish_time[active_ind] < np.inf
-        finish_time_ac[old_ind] = (finish_time[active_ind])[old_ind]
-        # Update old finishing time to inf
-        finish_time = np.ones((N,)) * np.inf
+        # print(active_ind)
+        # finish_time_ac = np.ones((int(x[k]),)) * k * T
+        # finish_time_copy = finish_time[active_ind]
+        # old_ind = finish_time_copy < np.inf
+        # # print(old_ind)
+        # finish_time_ac[old_ind] = finish_time_copy[old_ind]
 
+        # # Update old finishing time to inf
+        # finish_time = np.ones((N,)) * np.inf
+        finish_time_ac = finish_time[active_ind]
+        # print(finish_time_ac)
+        
         # Number of arrivals
         n = stats.poisson.rvs(T * max_rate)
         # Arrival times
-        t = stats.uniform.rvs(0,T,n)
+        t = stats.uniform.rvs(k*T,T,n)
         # Thining
         t = t[ stats.uniform.rvs(0,1,n) < intensity(t,k) / max_rate ]
         # Sorting
-        t = np.sort(t) + k * T
+        t = np.sort(t)
         # print(t.shape)
         # Service time
         service_time = service_t(t.shape[0])
         # p = np.zeros(t.shape)
+        customer_num += t.shape[0]
         
         for j,i in enumerate(t):
             # Find the earliest finishing time
@@ -105,5 +127,5 @@ def SingleQueue(x,intensity,max_rate,service_t,params):
     # plt.figure()
     # plt.plot(t,p)
     # plt.savefig(str(t.shape[0]) + ".png")
-    
-    return wait_time, t.shape[0]
+
+    return wait_time, customer_num
