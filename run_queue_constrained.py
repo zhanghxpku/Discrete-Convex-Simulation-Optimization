@@ -22,14 +22,14 @@ params = {}
 # Dimension and scale
 # params["N"] = int(sys.argv[1])
 # params["M"] = int(sys.argv[2])
-params["N"] = 5
-params["M"] = 5
+params["N"] = 20
+params["M"] = 24
 params["d"] = params["M"]
 
 # Optimality criteria
 params["eps"] = 1e-1
 params["delta"] = 1e-6
-
+ 
 # Generate the model
 params["sigma"] = 3e-1 # sub-Gaussian parameter
 
@@ -115,7 +115,7 @@ f_out.close()
 
 
 
-# sample = np.zeros((5000,))
-# for i in range(5000):
-#     sample[i] = model["F"](np.array([5,5,5,5,5]))
-# print(np.std(sample))
+sample = np.zeros((5000,))
+for i in range(5000):
+    sample[i] = model["F"](np.array([5,5,5,5,5,5,5,5,5,5]))
+print(np.std(sample))

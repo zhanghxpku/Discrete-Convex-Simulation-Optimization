@@ -31,6 +31,8 @@ def QueueRegORModel(params):
     Generate the objective function with a regularization
     """
     
+    # Regularizer
+    c = params["c"] if "c" in params else 0
     # Service time
     mean = (0.2,0.65)
     var = (0.01,0.1)
@@ -39,13 +41,15 @@ def QueueRegORModel(params):
     loc = mean[0] - np.exp(s**2/2)
     service = lambda size: stats.lognorm.rvs(s,loc=loc,size=size)
     
-    return {"F": lambda x: WaitingTime(x,service,params)}
+    return {"F": lambda x: (WaitingTime(x,service,params) + np.sum(c * x))}
 
 def WaitingTime(x,service,params):
     """
     Compute the waiting time of the queue
     """
     
+    # Retrieve parameters: max number of servers
+    N = params["N"] if "N" in params else 2
     # Retrieve parameters: number of decisions in each period
     M = params["M"] if "M" in params else 24
     
@@ -53,10 +57,10 @@ def WaitingTime(x,service,params):
     Gamma_1 = stats.uniform.rvs(0.75,0.5)
     
     # Generate intensity functions (i-th hour)
-    lambda_1 = lambda t, i: Gamma_1 * ( 30 + (40 + 35 * np.sin(2*np.pi/M*i)) * np.sin(0.3*t) )
+    lambda_1 = lambda t, i: Gamma_1 * ( 6 + (8 + 7 * np.sin(2*np.pi/M*i)) * np.sin(0.3*t) ) * N
     
     # Maximal rates
-    max_1 = 105 * Gamma_1
+    max_1 = 21 * N * Gamma_1
     
     # The total waiting time
     t1, n1 = SingleQueue(x,lambda_1,max_1,service,params)
