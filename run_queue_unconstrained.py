@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun May  2 12:23:09 2021
+Created on Mon May  3 21:05:37 2021
 
 @author: haixiang_zhang
 """
@@ -25,8 +25,6 @@ params = {}
 params["N"] = 30
 params["M"] = 8
 params["d"] = params["M"]
-# Capacity constraint
-params["K"] = 60
 
 # Optimality criteria
 params["eps"] = 1e-1
@@ -91,7 +89,7 @@ for t in range(1):
 #     # f_opt = model["f"](model["x_opt"])
     
     # Use truncated subgradient descent method
-    output_grad = solvers.gradient_solver.GradientSolver(model["F"],params)
+    output_grad = solvers.gradient_solver.GradientSolver(model["F"],params,False)
     print(output_grad)
     
     # Update records
@@ -119,5 +117,5 @@ f_out.close()
 
 sample = np.zeros((5000,))
 for i in range(5000):
-    sample[i] = model["F"](np.array([17,15,23,29,30,24,20,15]))
+    sample[i] = model["F"](np.array([23,13,23,19,12,28,14,16]))
 print(np.std(sample),np.mean(sample))
