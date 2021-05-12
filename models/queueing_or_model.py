@@ -24,7 +24,7 @@ def QueueORModel(params):
     loc = mean - np.exp(s**2/2)
     service = lambda size: stats.lognorm.rvs(s,loc=loc,size=size)
     
-    return {"F": lambda x: WaitingTime(x,service,params)}
+    return {"F": lambda y: WaitingTime(y,service,params)}
 
 def QueueRegORModel(params):
     """
@@ -41,31 +41,35 @@ def QueueRegORModel(params):
     loc = mean - np.exp(s**2/2)
     service = lambda size: stats.lognorm.rvs(s,loc=loc,size=size)
     
-    return {"F": lambda x: (WaitingTime(x,service,params) + np.sum(c * x))}
+    return {"F": lambda y: (WaitingTime(y,service,params) + c * y[-1] )}
 
-def WaitingTime(x,service,params):
+def WaitingTime(y,service,params):
     """
     Compute the waiting time of the queue
     """
     
     # Retrieve parameters: max number of servers
     N = params["N"] if "N" in params else 2
-    # Retrieve parameters: number of decisions in each period
-    M = params["M"] if "M" in params else 24
+    # Retrieve parameters: number of time slots
+    d = params["d"] if "d" in params else 24
     
     # Parameters
     # Gamma_1 = stats.uniform.rvs(0.75,0.5)
     
     # Generate intensity functions (i-th hour)
-    lambda_1 = lambda t: 4 * N * ( 1 - np.abs( t - 12 ) / 12 )
+    lambda_1 = lambda t: 2 * N * ( 1 - np.abs( t - 12 ) / 12 )
     
     # Maximal rates
     max_1 = lambda_1(12)
+    # Linear transform
+    x = np.zeros((d,))
+    x[0] = y[0]
+    x[1:] = np.diff(y)
     
     # The total waiting time
     t1, n1 = SingleQueue(x,lambda_1,max_1,service,params)
     
-    return t1 / n1
+    return t1
 
 def SingleQueue(x,intensity,max_rate,service_t,params):
     """
@@ -98,9 +102,13 @@ def SingleQueue(x,intensity,max_rate,service_t,params):
     finish_time = np.zeros((N,))
     # Current slot
     k = 0
+    # print(x,N)
     # Randomly choose x[k] servers to work
     active_ind = np.random.choice(np.arange(N), int(x[k]), False)
     finish_time_ac = finish_time[active_ind]
+    
+    # if np.min(x) == 0 or np.max(x) == N + 1:
+    # print(x)
     
     for j,i in enumerate(t):
         # Find the earliest finishing time
@@ -108,12 +116,10 @@ def SingleQueue(x,intensity,max_rate,service_t,params):
         finish_min = finish_time_ac[next_server]
         
         # Decide if we need to move to the next slot
-        while finish_min >= (k+1) * T or i >= (k+1) * T:
+        while k < M - 1 and (finish_min >= (k+1) * T or i >= (k+1) * T):
             # Update the original array
             finish_time[active_ind] = finish_time_ac
             k += 1
-            if k >= M:
-                break
             # Randomly choose x[k] servers to work
             active_ind = np.random.choice(np.arange(N), int(x[k]), False)
             finish_time_ac = finish_time[active_ind]
@@ -122,8 +128,6 @@ def SingleQueue(x,intensity,max_rate,service_t,params):
             next_server = np.argmin(finish_time_ac)
             finish_min = finish_time_ac[next_server]
         
-        if k >= M:
-            break
         # Update waiting time
         wait_time += max(finish_min - i, 0)
         # Update finishing time

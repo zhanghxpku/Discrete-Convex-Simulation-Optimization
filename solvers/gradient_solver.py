@@ -10,7 +10,7 @@ Truncated subgradient descent method.
 import math
 import numpy as np
 import time
-from utils.lovasz import Lovasz, Round
+from utils.lovasz import Lovasz, Round, RoundCons, LovaszCons
 from utils.subgaussian import RequiredSamples
 
 import gurobipy as gp
@@ -38,21 +38,27 @@ def GradientSolver(F,params,truncated=True):
     f_old = 0
     f_new = 0
     # Check stopping criterion every 1000 iterations
-    interval = RequiredSamples(delta/4,eps/16/np.sqrt(d),params)
+    interval = int(RequiredSamples(delta/4,eps/16/np.sqrt(d),params) * 1e-1)
     # print(interval)
     
     # Iterate numbers and step size
-    T = math.ceil( max( 64*d*(N**2)*sigma / (eps**2) * math.log(2/delta),
+    if truncated:
+        T = math.ceil( max( 64*d*(N**2)*sigma / (eps**2) * math.log(2/delta),
                         (d**2) * (L**2) / (eps**2),  
                         64*(d**2)*(N**2) / (eps**2) * math.log(sigma*d**2/N**3)
                        ) )
-    if truncated:
         M = max(sigma*math.sqrt(math.log( max(4*sigma*d*N*T / eps, 1) )), L) 
         eta =  N / M / np.sqrt( T )
     else:
-        # M = np.inf
+        T = math.ceil( max( 64*d*(N**2)*sigma / (eps**2) * math.log(2/delta),
+                        (d**2) * (L**2) / (eps**2),  
+                        64*(d**2)*(N**2) / (eps**2) * math.log(sigma*d**2/N**3)
+                        ) )
         M = max(sigma*math.sqrt(math.log( max(4*sigma*d*N*T / eps, 1) )), L) 
-        eta = d * N / sigma * np.sqrt(d / T)
+        eta =  N / M / np.sqrt( T )
+        # T = math.ceil( 64*(d + (N**2))*sigma / (eps**2) * math.log(2/delta))
+        # M = np.inf
+        # eta = N / sigma * np.sqrt(d / T)
     # print(T,eta,M)
     
     # Start timing
@@ -83,7 +89,7 @@ def GradientSolver(F,params,truncated=True):
         #     print("Truncated!")
         
         # Update and project the current point
-        x = x - 25 * d / int(t/interval+1) * eta * sub_grad
+        x = x - 10 * np.sqrt(N) * d / int(t/interval+1) * eta * sub_grad
         x = np.clip(x,1,N)
         
         # Update the moving average
@@ -96,17 +102,17 @@ def GradientSolver(F,params,truncated=True):
         # Update the cumulative weight
         weight_cum = new_weight
         
-        if t % (int(interval * 0.0005)) == 0:
+        if t % (int(interval)) == 0:
             f, _ = Lovasz(F,x_avg,params)
             print(f_new, hat_F, f)
             # print(sub_grad)
             print(x_avg)
         
         # Early stopping
-        if t % int(interval * 0.001) == int(interval * 0.001) - 1 and t >= 0 * interval:
+        if t % int(interval) == int(interval) - 1 and t >= 0 * interval:
             print(cnt,f_new,f_old,total_samples)
             # Decay is not sufficient
-            if f_new - f_old >= -eps:
+            if f_new - f_old >= -eps / np.sqrt(N):
                 cnt += 1
             else:
                 cnt = 0
@@ -129,7 +135,7 @@ def GradientSolver(F,params,truncated=True):
     return {"x_opt":x_opt, "time":stop_time-start_time, "total":total_samples}
     
 
-def GradientProjSolver(F,params):
+def GradientProjSolver(F,params,truncated=True):
     """
     The truncated subgradient method for multi-dim problems with capacity constraints.
     """
@@ -147,6 +153,7 @@ def GradientProjSolver(F,params):
     
     # Initial point
     x = np.ones((d,)) * (N+1) / 2
+    x = np.cumsum(x)
     # x = np.random.uniform(1,N,(d,))
     # The moving average
     x_avg = np.copy(x)
@@ -154,19 +161,45 @@ def GradientProjSolver(F,params):
     f_old = 0
     f_new = 0
     # Check stopping criterion every 1000 iterations
-    interval = RequiredSamples(delta/4,eps/16/np.sqrt(d),params)
+    interval = int(RequiredSamples(delta/4,eps/16/np.sqrt(d),params) * 1e-1)
     # print(interval)
     
-    # Iterate numbers and step size
-    T = math.ceil( max( 64*d*(N**2)*sigma / (eps**2) * math.log(2/delta),
+    if truncated:
+        T = math.ceil( max( 64*d*(N**2)*sigma / (eps**2) * math.log(2/delta),
                         (d**2) * (L**2) / (eps**2),  
                         64*(d**2)*(N**2) / (eps**2) * math.log(sigma*d**2/N**3)
                        ) )
-    M = max(sigma*math.sqrt(math.log( max(4*sigma*d*N*T / eps, 1) )), L) 
-    eta =  N / M / np.sqrt( T )
-    # M = np.inf
-    # eta = N / sigma * np.sqrt(d / T)
-    # print(T,eta,M)
+        M = max(sigma*math.sqrt(math.log( max(4*sigma*d*N*T / eps, 1) )), L) 
+        eta =  N / M / np.sqrt( T )
+    else:
+        # T = math.ceil( max( 64*d*(N**2)*sigma / (eps**2) * math.log(2/delta),
+        #                 (d**2) * (L**2) / (eps**2),  
+        #                 64*(d**2)*(N**2) / (eps**2) * math.log(sigma*d**2/N**3)
+        #                 ) )
+        # M = max(sigma*math.sqrt(math.log( max(4*sigma*d*N*T / eps, 1) )), L) 
+        # eta =  N / M / np.sqrt( T )
+        T = math.ceil( 64*(d + (N**2))*sigma / (eps**2) * math.log(2/delta))
+        M = np.inf
+        eta = N / sigma * np.sqrt(d / T) / 10
+    # # Iterate numbers and step size
+    # if truncated:
+    #     T = math.ceil( max( 64*d*(K**2)*sigma / (eps**2) * math.log(2/delta),
+    #                     (d**2) * (L**2) / (eps**2),  
+    #                     64*(d**2)*(K**2) / (eps**2) * math.log(sigma*d**2/K**3)
+    #                    ) )
+    #     M = max(sigma*math.sqrt(math.log( max(4*sigma*d*N*T / eps, 1) )), L) 
+    #     eta =  N / M / np.sqrt( T )
+    # else:
+    #     # T = math.ceil( max( 64*d*(K**2)*sigma / (eps**2) * math.log(2/delta),
+    #     #                 (d**2) * (L**2) / (eps**2),  
+    #     #                 64*(d**2)*(K**2) / (eps**2) * math.log(sigma*d**2/K**3)
+    #     #                 ) )
+    #     # M = max(sigma*math.sqrt(math.log( max(4*sigma*d*K*T / eps, 1) )), L) 
+    #     # eta =  K / M / np.sqrt( T )
+    #     T = math.ceil( 64*(d + (K**2))*sigma / (eps**2) * math.log(2/delta))
+    #     M = np.inf
+    #     eta = K / sigma * np.sqrt(d / T)
+    # # print(T,eta,M)
     
     # Start timing
     start_time = time.time()
@@ -174,7 +207,7 @@ def GradientProjSolver(F,params):
     total_samples = 0
     
     # Weighted average
-    alpha = 0.5
+    alpha = 0.1
     weight_cum = 0
     # Early stopping
     cnt = 0
@@ -184,9 +217,9 @@ def GradientProjSolver(F,params):
     
     # Truncated subgradient descent
     for t in range(T):
-        
+                
         # Compute subgradient
-        hat_F, sub_grad = Lovasz(F,x,params)
+        hat_F, sub_grad = LovaszCons(F,x,params)
         
         total_samples += (2*d)
         
@@ -196,7 +229,7 @@ def GradientProjSolver(F,params):
         #     print("Truncated!")
         
         # Update and project the current point
-        x = x - 50 / int(t/interval+1) * eta * sub_grad
+        x = x - 5 * np.sqrt(N) * d / int(t/interval+1) * eta * sub_grad
         
         # Projection under the capacity constraint
         model = gp.Model("projection")
@@ -205,16 +238,25 @@ def GradientProjSolver(F,params):
         y = model.addVars(range(d), vtype=GRB.CONTINUOUS, name="y")
         # Add constraints
         model.addConstrs(
-            (y[j] >= 1 for j in range(d)),
+            (y[j+1] >= y[j] + 1 + 1e-7 for j in range(d-1)),
             name="c1")
         model.addConstrs(
-            (y[j] <= N for j in range(d)),
+            (y[j+1] <= y[j] + N - 1e-7 for j in range(d-1)),
             name="c2")
         model.addConstr(
-            gp.quicksum( y[k] for k in range(d) ) <= K,
+            y[0] >= 1 + 1e-7,
             name="c3")
+        model.addConstr(
+            y[d-1] <= K,
+            name="c4")
+        model.addConstr(
+            y[0] <= N - 1e-7,
+            name="c5")
+        # model.addConstr(
+        #     gp.quicksum( y[k] for k in range(d) ) <= K,
+        #     name="c5")
         # Set the objective function
-        model.setObjective(gp.quicksum( (x[k]-y[k])**2 for k in range(d) ), GRB.MINIMIZE)
+        model.setObjective(gp.quicksum( (x[k]-y[k])*(x[k]-y[k]) for k in range(d) ), GRB.MINIMIZE)
         # model.setObjective(gp.quicksum((x[k]-x[d+k]-v[k])*(x[k]-x[d+k]-v[k]) for k in range(d)),
         #                    GRB.MINIMIZE)
         # Solve the projection problem
@@ -223,6 +265,9 @@ def GradientProjSolver(F,params):
         x = np.zeros((d,))
         for i in range(d):
             x[i] = y[i].X
+        
+        # # if np.min(np.diff(x)) < 1:
+        # print("pts:", x)
 
         # Update the moving average
         new_weight = weight_cum * (1-alpha) + alpha
@@ -234,17 +279,17 @@ def GradientProjSolver(F,params):
         # Update the cumulative weight
         weight_cum = new_weight
         
-        if t % (int(interval * 0.0005)) == 0:
-            f, _ = Lovasz(F,x_avg,params)
+        if t % (int(interval / 10)) == 0:
+            f, _ = LovaszCons(F,x_avg,params)
             print(f_new, hat_F, f)
-            # print(sub_grad)
+            # print(np.linalg.norm(sub_grad))
             print(x_avg)
         
         # Early stopping
-        if t % int(interval * 0.001) == int(interval * 0.001) - 1 and t >= 0 * interval:
+        if t % int(interval) == int(interval) - 1 and t >= 0 * interval:
             print(cnt,f_new,f_old,total_samples)
             # Decay is not sufficient
-            if f_new - f_old >= -eps:
+            if f_new - f_old >= -eps / np.sqrt(K):
                 cnt += 1
             else:
                 cnt = 0
@@ -258,7 +303,7 @@ def GradientProjSolver(F,params):
         #     f_old = f_new
     
     # Round to an integral point
-    output_round = Round(F,x_avg,params)
+    output_round = RoundCons(F,x_avg,params)
     x_opt = output_round["x_opt"]
     total_samples += output_round["total"]
     # Stop timing

@@ -22,16 +22,19 @@ params = {}
 # Dimension and scale
 # params["N"] = int(sys.argv[1])
 # params["M"] = int(sys.argv[2])
-params["N"] = 30
-params["M"] = 8
+params["N"] = 50
+params["M"] = 4
 params["d"] = params["M"]
+# params["N"] = params["scale"] * params["d"]
+# Regularization constraint
+params["c"] = 0 / params["M"]
 
 # Optimality criteria
-params["eps"] = 1e-1
+params["eps"] = 5
 params["delta"] = 1e-6
- 
+
 # Generate the model
-params["sigma"] = 2e-1 # sub-Gaussian parameter
+params["sigma"] = 30 * np.sqrt(params["N"]) # sub-Gaussian parameter
 
 # Record average simulation runs and optimality gaps
 total_samples = np.zeros((2,))
@@ -39,11 +42,11 @@ gaps = np.zeros((2,))
 rate = np.zeros((2,))
 
 # Open the output file
-f_out = open("./results/queue_cons_" + str(params["N"]) + "_" + str(params["M"]) + ".txt", "w")
+f_out = open("./results/queue_uncons_" + str(params["N"]) + "_" + str(params["M"]) + ".txt", "w")
 
 for t in range(1):
     print(t)
-    model = models.queueing_or_model.QueueORModel(params)
+    model = models.queueing_or_model.QueueRegORModel(params)
     
     f_out.write(str(t))
     f_out.write("\n")
@@ -89,7 +92,7 @@ for t in range(1):
 #     # f_opt = model["f"](model["x_opt"])
     
     # Use truncated subgradient descent method
-    output_grad = solvers.gradient_solver.GradientSolver(model["F"],params,False)
+    output_grad = solvers.gradient_solver.GradientProjSolver(model["F"],params,False)
     print(output_grad)
     
     # Update records
@@ -114,8 +117,12 @@ f_out.write( " ".join([ str(total_samples[0]),str(gaps[0]),str(rate[0]) ]) )
 f_out.close()
 
 
+sample = np.zeros((5000,))
+for i in range(5000):
+    sample[i] = model["F"](output_grad["x_opt"])
+print(np.std(sample),np.mean(sample))
 
 sample = np.zeros((5000,))
 for i in range(5000):
-    sample[i] = model["F"](np.array([23,13,23,19,12,28,14,16]))
+    sample[i] = model["F"](np.cumsum(params["N"] * np.ones((params["d"],))))
 print(np.std(sample),np.mean(sample))

@@ -22,18 +22,18 @@ params = {}
 # Dimension and scale
 # params["N"] = int(sys.argv[1])
 # params["M"] = int(sys.argv[2])
-params["N"] = 30
-params["M"] = 8
+params["N"] = 10
+params["M"] = 24
 params["d"] = params["M"]
 # Capacity constraint
-params["K"] = 60
+params["K"] = 40
 
 # Optimality criteria
-params["eps"] = 1e-1
+params["eps"] = params["N"] / 2
 params["delta"] = 1e-6
  
 # Generate the model
-params["sigma"] = 2e-1 # sub-Gaussian parameter
+params["sigma"] = 30 * np.sqrt(params["N"]) # sub-Gaussian parameter
 
 # Record average simulation runs and optimality gaps
 total_samples = np.zeros((2,))
@@ -91,7 +91,7 @@ for t in range(1):
 #     # f_opt = model["f"](model["x_opt"])
     
     # Use truncated subgradient descent method
-    output_grad = solvers.gradient_solver.GradientSolver(model["F"],params)
+    output_grad = solvers.gradient_solver.GradientSolver(model["F"],params,False)
     print(output_grad)
     
     # Update records
@@ -116,8 +116,12 @@ f_out.write( " ".join([ str(total_samples[0]),str(gaps[0]),str(rate[0]) ]) )
 f_out.close()
 
 
+sample = np.zeros((5000,))
+for i in range(5000):
+    sample[i] = model["F"](output_grad["x_opt"])
+print(np.std(sample),np.mean(sample))
 
 sample = np.zeros((5000,))
 for i in range(5000):
-    sample[i] = model["F"](np.array([17,15,23,29,30,24,20,15]))
+    sample[i] = model["F"](params["N"] * np.ones((params["d"],)))
 print(np.std(sample),np.mean(sample))
