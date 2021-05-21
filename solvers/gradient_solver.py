@@ -152,7 +152,7 @@ def GradientProjSolver(F,params,truncated=True):
     K = params["K"] if "K" in params else N * d
     
     # Initial point
-    x = np.ones((d,)) * (N+1) / 2
+    x = np.ones((d,)) * (N+1) / 4
     x = np.cumsum(x)
     # x = np.random.uniform(1,N,(d,))
     # The moving average
@@ -170,17 +170,11 @@ def GradientProjSolver(F,params,truncated=True):
                         64*(d**2)*(N**2) / (eps**2) * math.log(sigma*d**2/N**3)
                        ) )
         M = max(sigma*math.sqrt(math.log( max(4*sigma*d*N*T / eps, 1) )), L) 
-        eta =  N / M / np.sqrt( T )
+        eta =  N / M / np.sqrt( T ) * params["eta"]
     else:
-        # T = math.ceil( max( 64*d*(N**2)*sigma / (eps**2) * math.log(2/delta),
-        #                 (d**2) * (L**2) / (eps**2),  
-        #                 64*(d**2)*(N**2) / (eps**2) * math.log(sigma*d**2/N**3)
-        #                 ) )
-        # M = max(sigma*math.sqrt(math.log( max(4*sigma*d*N*T / eps, 1) )), L) 
-        # eta =  N / M / np.sqrt( T )
         T = math.ceil( 64*(d + (N**2))*sigma / (eps**2) * math.log(2/delta))
         M = np.inf
-        eta = N / sigma * np.sqrt(d / T) / 10
+        eta = N / sigma * np.sqrt(d / T) * params["eta"]
     # # Iterate numbers and step size
     # if truncated:
     #     T = math.ceil( max( 64*d*(K**2)*sigma / (eps**2) * math.log(2/delta),
@@ -279,20 +273,26 @@ def GradientProjSolver(F,params,truncated=True):
         # Update the cumulative weight
         weight_cum = new_weight
         
-        if t % (int(interval / 10)) == 0:
+        if t % (int(interval / 3)) == 0:
             f, _ = LovaszCons(F,x_avg,params)
-            print(f_new, hat_F, f)
-            # print(np.linalg.norm(sub_grad))
-            print(x_avg)
+            # print(f_new, hat_F, f)
+            # # print(np.linalg.norm(sub_grad))
+            # print(x_avg)
         
         # Early stopping
         if t % int(interval) == int(interval) - 1 and t >= 0 * interval:
-            print(cnt,f_new,f_old,total_samples)
+            # print(cnt,f_new,f_old,total_samples)
             # Decay is not sufficient
-            if f_new - f_old >= -eps / np.sqrt(K):
-                cnt += 1
+            if truncated:
+                if f_new - f_old >= -eps / np.sqrt(N):
+                    cnt += 1
+                else:
+                    cnt = 0
             else:
-                cnt = 0
+                if f_new - f_old >= -eps / np.sqrt(N) / 8:
+                    cnt += 1
+                else:
+                    cnt = 0
             if f_new < f_old:
                 f_old = f_new
             if cnt > 1:

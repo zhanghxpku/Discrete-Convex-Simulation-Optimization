@@ -114,7 +114,7 @@ plt.legend([curve1,curve2,curve5,curve3,curve4],
 plt.xlabel("N")
 plt.ylabel("Sample complexity")
 # plt.title("Queueing Model")
-plt.ylim( [0, 300000] )
+plt.ylim( [0, 600000] )
 plt.savefig("./results/queue/queue_new.png",bbox_inches='tight', dpi=300)
 # plt.title("Artificial Convex Model")
 # plt.ylim( [0, 600000] )

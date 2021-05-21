@@ -20,17 +20,21 @@ import solvers
 params = {}
 
 # Dimension and scale
-# params["N"] = int(sys.argv[1])
-# params["M"] = int(sys.argv[2])
-params["N"] = 50
-params["M"] = 4
+params["N"] = int(sys.argv[1])
+params["M"] = int(sys.argv[2])
+# params["N"] = 10
+# params["M"] = 12
 params["d"] = params["M"]
 # params["N"] = params["scale"] * params["d"]
 # Regularization constraint
-params["c"] = 0 / params["M"]
+params["c"] = 50 / params["M"]
+params["K"] = int(params["N"] * params["d"] / 3)
+params["trunc"] = bool(int(sys.argv[3]))
+# params["eta"] = float(sys.argv[4])
+params["eta"] = 1 if params["trunc"] else 0.1
 
 # Optimality criteria
-params["eps"] = 5
+params["eps"] = params["N"] / 2
 params["delta"] = 1e-6
 
 # Generate the model
@@ -42,9 +46,9 @@ gaps = np.zeros((2,))
 rate = np.zeros((2,))
 
 # Open the output file
-f_out = open("./results/queue_uncons_" + str(params["N"]) + "_" + str(params["M"]) + ".txt", "w")
+f_out = open("./results/queue_uncons_" + str(params["N"]) + "_" + str(params["M"]) + "_" + str(params["trunc"]) + ".txt", "w")
 
-for t in range(1):
+for t in range(5):
     print(t)
     model = models.queueing_or_model.QueueRegORModel(params)
     
@@ -92,7 +96,7 @@ for t in range(1):
 #     # f_opt = model["f"](model["x_opt"])
     
     # Use truncated subgradient descent method
-    output_grad = solvers.gradient_solver.GradientProjSolver(model["F"],params,False)
+    output_grad = solvers.gradient_solver.GradientProjSolver(model["F"],params,params["trunc"])
     print(output_grad)
     
     # Update records
@@ -104,6 +108,11 @@ for t in range(1):
     # f_out.write(str(model["f"](output_grad["x_opt"]) - f_opt))
     # f_out.write("\n")
     f_out.flush()
+    
+    sample = np.zeros((5000,))
+    for i in range(5000):
+        sample[i] = model["F"](output_grad["x_opt"])
+    print(np.std(sample),np.mean(sample))
 
 # # for t in range(1):
 # #     if min_val - f_opt <= params["eps"]:
@@ -117,12 +126,12 @@ f_out.write( " ".join([ str(total_samples[0]),str(gaps[0]),str(rate[0]) ]) )
 f_out.close()
 
 
-sample = np.zeros((5000,))
-for i in range(5000):
-    sample[i] = model["F"](output_grad["x_opt"])
-print(np.std(sample),np.mean(sample))
+# sample = np.zeros((5000,))
+# for i in range(5000):
+#     sample[i] = model["F"](output_grad["x_opt"])
+# print(np.std(sample),np.mean(sample))
 
-sample = np.zeros((5000,))
-for i in range(5000):
-    sample[i] = model["F"](np.cumsum(params["N"] * np.ones((params["d"],))))
-print(np.std(sample),np.mean(sample))
+# sample = np.zeros((5000,))
+# for i in range(5000):
+#     sample[i] = model["F"](np.cumsum(params["N"] * np.ones((params["d"],))))
+# print(np.std(sample),np.mean(sample))
