@@ -31,7 +31,7 @@ params["c"] = 50 / params["M"]
 params["K"] = int(params["N"] * params["d"] / 3)
 params["trunc"] = bool(int(sys.argv[3]))
 # params["eta"] = float(sys.argv[4])
-params["eta"] = 1 if params["trunc"] else 0.1
+params["eta"] = 1 if params["trunc"] else 0.05
 
 # Optimality criteria
 params["eps"] = params["N"] / 2
