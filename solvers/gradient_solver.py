@@ -104,13 +104,13 @@ def GradientSolver(F,params,truncated=True):
         
         if t % (interval * 1) == 0:
             f, _ = Lovasz(F,x_avg,params)
-            print(f_new, hat_F, f)
+            # print(f_new, hat_F, f)
             # print(sub_grad)
-            print(x_avg)
+            # print(x_avg)
         
         # Early stopping
         if t % interval == interval - 1 and t >= 0 * interval:
-            print(cnt,f_new,f_old,total_samples)
+            # print(cnt,f_new,f_old,total_samples)
             # Decay is not sufficient
             if f_new - f_old >= -eps / np.sqrt(N):
                 cnt += 1
