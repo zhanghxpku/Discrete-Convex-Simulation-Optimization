@@ -21,8 +21,8 @@ params = {}
 
 # Dimension and scale
 params["d"] = 1
-params["N"] = int(sys.argv[1])
-# params["N"] = 100
+# params["N"] = int(sys.argv[1])
+params["N"] = 10
 
 # Optimality criteria
 params["eps"] = 1e0
@@ -36,16 +36,16 @@ total_samples = np.zeros((2,))
 gaps = np.zeros((2,))
 rate = np.zeros((2,))
 
-# Open the output file
-f_out = open("./results/queue_" + str(params["N"]) + ".txt", "w")
+# # Open the output file
+# f_out = open("./results/queue_" + str(params["N"]) + ".txt", "w")
 
-for t in range(100):
+for t in range(1):
     print(t)
     model = models.queueing_model.QueueModel(params)
     
-    f_out.write(str(t))
-    f_out.write("\n")
-    f_out.flush()
+    # f_out.write(str(t))
+    # f_out.write("\n")
+    # f_out.flush()
     
     # if "f" in model:
     #     # Plot the function
@@ -85,17 +85,20 @@ for t in range(100):
     total_samples[0] = ( total_samples[0] * t + output_ada["total"] ) / (t+1)
     total_samples[1] = ( total_samples[1] * t + output_uni["total"] ) / (t+1)
     
-    # Get the optimal value
-    num_samples = utils.subgaussian.RequiredSamples(params["delta"],
-                                                    params["eps"],
-                                                    params)
-    y = np.zeros((2,))
-    for i in range(int(num_samples/100)):
-        y[0] = ( y[0] * i + model["F"]([output_ada["x_opt"]]) ) / (i+1)
-        y[1] = ( y[1] * i + model["F"]([output_uni["x_opt"]]) ) / (i+1)
+    # # Get the optimal value
+    # num_samples = utils.subgaussian.RequiredSamples(params["delta"],
+    #                                                 params["eps"],
+    #                                                 params)
+    # y = np.zeros((2,))
+    # for i in range(int(num_samples/100)):
+    #     y[0] = ( y[0] * i + model["F"]([output_ada["x_opt"]]) ) / (i+1)
+    #     y[1] = ( y[1] * i + model["F"]([output_uni["x_opt"]]) ) / (i+1)
     
-    gaps[0] = ( gaps[0] * t + y[0] ) / (t+1)
-    gaps[1] = ( gaps[1] * t + y[1] ) / (t+1)
+    # gaps[0] = ( gaps[0] * t + y[0] ) / (t+1)
+    # gaps[1] = ( gaps[1] * t + y[1] ) / (t+1)
+    
+    gaps[0] = ( gaps[0] * t + output_ada["time"] ) / (t+1)
+    gaps[1] = ( gaps[1] * t + output_uni["time"] ) / (t+1)
     
     # if y[output_ada["x_opt"]-1] - f_opt <= params["eps"]:
     #     rate[0] = ( rate[0] * t + 1 ) / (t+1)
@@ -111,17 +114,17 @@ for t in range(100):
     # output_grad = solvers.gradient_solver.GradientSolver(model["F"],params)
     # print(output_grad)
     
-    f_out.write(" ".join( [str(output_ada["total"]),str(output_uni["total"]),\
-                        str(y[0]),str(y[1])] ))
-    f_out.write("\n")
-    f_out.flush()
+#     f_out.write(" ".join( [str(output_ada["total"]),str(output_uni["total"]),\
+#                         str(output_ada["time"]),str(output_uni["time"])] ))
+#     f_out.write("\n")
+#     f_out.flush()
 
-f_out.write("\n")
-f_out.write( " ".join([ str(total_samples[0]),str(gaps[0]) ]) )
-f_out.write("\n")
-f_out.write( " ".join([ str(total_samples[1]),str(gaps[1]) ]) )
+# f_out.write("\n")
+# f_out.write( " ".join([ str(total_samples[0]),str(gaps[0]) ]) )
+# f_out.write("\n")
+# f_out.write( " ".join([ str(total_samples[1]),str(gaps[1]) ]) )
 
-f_out.close()
+# f_out.close()
 
 
 
