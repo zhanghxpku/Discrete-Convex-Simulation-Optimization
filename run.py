@@ -19,7 +19,7 @@ params = {}
 
 # Dimension and scale
 params["d"] = 1
-params["N"] = 10
+params["N"] = 100
 
 # Optimality criteria
 params["eps"] = math.log(params["d"]+1,2) / 5
@@ -29,9 +29,10 @@ params["delta"] = 1e-6
 
 # Generate the model
 params["sigma"] = 1e1 # sub-Gaussian parameter
-model = models.queueing_model.QueueModel(params)
+# model = models.queueing_model.QueueModel(params)
 # model = models.quadratic_model.QuadraticModel(params)
 # model = models.separable_model.SeparableModel(params)
+model = models.bus_model.BusModel(params)
 
 # Lipschitz constant and closed-form objective function
 if "L" in model:

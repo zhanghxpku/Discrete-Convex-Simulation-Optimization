@@ -9,3 +9,4 @@ from .quadratic_model import QuadraticModel
 from .queueing_model import QueueModel
 from .separable_model import SeparableModel
 from .queueing_or_model import QueueORModel,QueueRegORModel
+from .bus_model import BusModel
