@@ -18,13 +18,14 @@ import solvers
 params = {}
 
 # Dimension and scale
-params["d"] = 1
-params["N"] = 100
+params["d"] = 4
+params["N"] = 99
 
 # Optimality criteria
-params["eps"] = math.log(params["d"]+1,2) / 5
+# params["eps"] = math.log(params["d"]+1,2) / 5
 # params["eps"] = math.log(params["d"]+1,2)*params["N"]**0.5 / 80
-params["eps"] = 1e0
+params["eps"] = 5e4 / (params["d"] + 1)
+# params["eps"] = 1e0
 params["delta"] = 1e-6
 
 # Generate the model
@@ -37,7 +38,7 @@ model = models.bus_model.BusModel(params)
 # Lipschitz constant and closed-form objective function
 if "L" in model:
     params["L"] = model["L"]
-    params["closed_form"] = True
+    params["closed_form"] = False
 else:
     params["L"] = 1
     params["closed_form"] = False
@@ -74,16 +75,17 @@ else:
 # # Use adaptive sampling algorithm
 # output_ada = solvers.adaptive_solver.AdaptiveSolver(model["F"],params)
 # print(output_ada)
-# Use uniform sampling algorithm
-output_uni = solvers.uniform_solver.UniformSolver(model["F"],params)
-print(output_uni)
-# Use lil'UCB algorithm
-output_ucb = solvers.ucb_solver.LILUCBSolver(model["F"],params)
-print(output_ucb)
+# # Use uniform sampling algorithm
+# output_uni = solvers.uniform_solver.UniformSolver(model["F"],params)
+# print(output_uni)
+# # Use lil'UCB algorithm
+# output_ucb = solvers.ucb_solver.LILUCBSolver(model["F"],params)
+# print(output_ucb)
 
-# # Use truncated subgradient descent method
-# output_grad = solvers.gradient_solver.GradientSolver(model["f"],params)
-# print(output_grad)
+# Use truncated subgradient descent method
+output_grad = solvers.gradient_solver.GradientSolver(model["F"],params)
+print(output_grad)
+print(model["f"](output_grad["x_opt"]) - params["eps"])
 # # Use Vaidya's cutting-plane method
 # output_vai = solvers.vaidya_solver.VaidyaSolver(model["F"],params)
 # print(output_vai)

@@ -105,6 +105,7 @@ def UniformSolver(F,params):
     # If S is a singleton
     if S.shape[0] == 1:
         x_opt = S[0]
+        f_opt = hat_F[0]
     # Solve the sub-problem
     else:
         # Number of points
@@ -140,8 +141,7 @@ def UniformSolver(F,params):
     # Stop timing
     stop_time = time.time()
 
-    return {"x_opt":x_opt, "time":stop_time-start_time, "total":total_samples,
-            "f_opt":f_opt}
+    return {"x_opt":x_opt, "time":stop_time-start_time, "total":total_samples}
 
 def UniformSolverMulti(F,params):
     """

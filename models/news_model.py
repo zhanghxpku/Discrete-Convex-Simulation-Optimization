@@ -3,7 +3,7 @@
 Created on Fri Nov 20 15:35:29 2020
 
 @author: haixiang_zhang
-Generate bus scheduling examples.
+Generate news vendor with dynamic consumer substitution examples.
 """
 
 import numpy as np
@@ -11,7 +11,7 @@ from scipy import stats
 # import matplotlib.pyplot as plt
 import time
 
-def BusModel(params):
+def NewsModel(params):
     """
     Generate the objective function
     """
