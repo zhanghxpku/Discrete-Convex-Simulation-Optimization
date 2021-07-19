@@ -16,57 +16,63 @@ def NewsModel(params):
     Generate the objective function
     """
     
-    # Parameters: lambda
-    lam = 10
-    # Retrieve parameters: upper bound of time
-    tau = params["N"] - 1 if "N" in params else 100
-    # Retrieve parameters: number of buses
-    d = params["d"] if "d" in params else 1
-    # The optimal solution
-    x_opt = np.linspace(tau / (d+1), tau * d / (d+1), d) + 1
-        
-    return {"F": lambda y: WaitingTime(y,params,False),
-            "f": lambda y: WaitingTime(y,params,True),
-            "L":lam*tau, "x_opt":x_opt}
-
-
-def WaitingTime(x,params,expectation=False):
-    """
-    Compute the waiting time
-    """
-    
-    # Parameters: lambda
-    lam = 10
-    # Retrieve parameters: upper bound of time
-    tau = params["N"] + 1 if "N" in params else 100
-    # Retrieve parameters: number of buses
+    # # Retrieve parameters: upper bound of time
+    # tau = params["N"] - 1 if "N" in params else 100
+    # Retrieve parameters: number of products
     d = params["d"] if "d" in params else 1
     
-    # Length of intervals
-    length = np.zeros((d+1,))
-    length[0] = x[0] - 1
-    length[1:-1] = np.abs(np.diff(x))
-    length[-1] = tau + 1 - x[-1]
+    # Net profit
+    # profit = np.zeros((d+1,))
+    profit = 0.5 * np.linspace(1,d,d)
+    # Stocking price
+    p = 0.3
+    # Parameters
+    a = 10
+    b = 5
     
-    if expectation:
-        return lam / 2 * np.sum( length ** 2 )
-    else:
-        # Number of arrivals in each interval
-        # try:
-        n = stats.poisson.rvs(length,size=(d+1,))
-        # except ValueError:
-        #     print(length)
-        #     return None
+    # The optimal decision
+    x_opt = np.ones((d,))
+    x_opt[-1] = np.floor(b - (b-a+1) * p / profit[-1] ) + 1
+        
+    return {"F": lambda y: Profit(y,params,profit) + p*np.sum(y),
+            "N":x_opt[-1],"x_opt":x_opt}
+
+
+def Profit(x,params,profit):
+    """
+    Compute the total profit
+    """
     
-        # Waiting time
-        wait_time = 0
+    # # Retrieve parameters: upper bound of time
+    # tau = params["N"] + 1 if "N" in params else 100
+    # Retrieve parameters: number of products
+    d = params["d"] if "d" in params else 1
+    # Parameters
+    a = 10
+    b = 5
+    mu = 1.0
+    
+    # Number of customers
+    N = np.random.randint(a,b*d+1)
+    
+    # Shift to the true stock value
+    y = x - 1
+    # Total number of iterations
+    num_iter = min(N, int(np.sum(y)))
+    
+    # Iterate for each arrival
+    for i in range(num_iter):
+        # Compute the probability
+        prob = np.exp( profit / mu ) * (y > 0)
+        prob /= np.sum(prob)
+        # Choose a random product
+        ind = np.random.choice(np.arange(d), p=prob)
+        y[ind] -= 1
+    
+    # Return the accumulated profit
+    return -np.sum( profit * ( x - 1 - y ) )
         
-        # Compute the waiting time
-        for i in range(d+1):
-            # # Number of arrivals
-            # n = stats.poisson.rvs(length[i] * lam)
-            # Waiting time
-            wait_time += stats.uniform.rvs(0,n[i] * length[i] / 2)
-        
-        return wait_time
+    
+    
+    
         

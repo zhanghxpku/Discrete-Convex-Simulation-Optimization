@@ -33,12 +33,15 @@ params["sigma"] = 1e1 # sub-Gaussian parameter
 # model = models.queueing_model.QueueModel(params)
 # model = models.quadratic_model.QuadraticModel(params)
 # model = models.separable_model.SeparableModel(params)
-model = models.bus_model.BusModel(params)
+# model = models.bus_model.BusModel(params)
+model = models.news_model.NewsModel(params)
+if "N" in model:
+    params["N"] = model["N"]
 
 # Lipschitz constant and closed-form objective function
 if "L" in model:
     params["L"] = model["L"]
-    params["closed_form"] = False
+    params["closed_form"] = True
 else:
     params["L"] = 1
     params["closed_form"] = False
@@ -83,9 +86,16 @@ else:
 # print(output_ucb)
 
 # Use truncated subgradient descent method
-output_grad = solvers.gradient_solver.GradientSolver(model["F"],params)
+output_grad = solvers.random_walk_solver.RandomWalkSolver(model["F"],params)
 print(output_grad)
-print(model["f"](output_grad["x_opt"]) - params["eps"])
+avg = np.zeros((2,))
+max_iter = 1000
+for _ in range(max_iter):
+    avg[0] += model["F"](output_grad["x_opt"])
+    avg[1] += model["F"](model["x_opt"])
+avg /= max_iter
+print(avg)
+
 # # Use Vaidya's cutting-plane method
 # output_vai = solvers.vaidya_solver.VaidyaSolver(model["F"],params)
 # print(output_vai)
