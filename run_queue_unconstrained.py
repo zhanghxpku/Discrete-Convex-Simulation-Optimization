@@ -22,12 +22,13 @@ params = {}
 # Dimension and scale
 # params["N"] = int(sys.argv[1])
 # params["M"] = int(sys.argv[2])
-params["N"] = 5
-params["M"] = 2
+params["N"] = 10
+params["M"] = 4
 params["d"] = params["M"]
 # params["N"] = params["scale"] * params["d"]
 # Regularization constraint
 params["c"] = 50 / params["M"]
+# params["K"] = params["N"] * params["d"]
 params["K"] = int(params["N"] * params["d"] / 3)
 # params["trunc"] = bool(int(sys.argv[3]))
 # params["eta"] = float(sys.argv[4])

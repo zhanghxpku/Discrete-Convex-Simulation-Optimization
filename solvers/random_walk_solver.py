@@ -11,7 +11,7 @@ import math
 import numpy as np
 import scipy as sp
 import time
-from utils.lovasz import Lovasz, Round, SO
+from utils.lovasz import Lovasz, Round, SO, LovaszCons, RoundCons, SOCons
 # from utils.subgaussian import RequiredSamples
 
 def RandomWalkSolver(F,params):
@@ -245,8 +245,11 @@ def RandomWalkProjSolver(F,params):
     # Record polytope Ax >= b
     # Basic block
     E = np.eye(d)
+    E_inv = np.eye(d)
     for i in range(d-1):
         E[i+1,i] = -1
+        for j in range(i+1):
+            E_inv[i+1,j] = 1
     A = np.zeros((2*d+1,d))
     A[:d,:] = E
     A[d:2*d,:] = -E
@@ -260,13 +263,13 @@ def RandomWalkProjSolver(F,params):
     x = np.ones((d,)) * (N+1) / 4
     z = np.cumsum(x)
     # Initial uniform distribution
-    y_set = np.random.uniform(1,N,(d,M))
+    y_set = E_inv @ np.random.uniform(1,N,(d,M))
     
     for t in range(T):
         
         # Separation oracle
         print(z)
-        so = SO(F,z,eps/8*min(N,N)*800,delta/4,params)
+        so = SOCons(F,z,eps/8*min(N,N)*10,delta/4,params)
         c = -so["hat_grad"]
         # print(c)
         # c = - np.ones((d,))
@@ -279,7 +282,7 @@ def RandomWalkProjSolver(F,params):
         c = np.reshape(c,(1,d))
         A = np.concatenate((A,c), axis=0)
         b = np.concatenate((b,[[np.sum(c*z)]]),axis=0)
-        # print(A)
+        print(A,b)
         
         # Update S
         temp = np.concatenate((z,[hat_F]),axis=0) # (d+1) vector
@@ -306,7 +309,7 @@ def RandomWalkProjSolver(F,params):
         print("here!")
         # Approximate uniform distribution
         y_set = RandomProjWalk(y_set,Y,A,b,params,M)
-        print("here!!")
+        # print("here!!")
         
         # Update analytical center
         y_set = y_set[:,np.random.permutation(np.arange(2*M))]
@@ -325,13 +328,13 @@ def RandomWalkProjSolver(F,params):
     x_bar = S[i,:d]
     
     # Round to an integral solution
-    x_opt = Round(F,x_bar,params)["x_opt"]
+    x_opt = RoundCons(F,x_bar,params)["x_opt"]
     # Stop timing
     stop_time = time.time()
     
     return {"x_opt":x_opt, "time":stop_time-start_time, "total":total_samples}
 
-def RandomProjWalk(y_set,Y,A,b,params,M=None):
+def RandomProjWalk(y_set_origin,Y_origin,A_origin,b_origin,params,M=None):
     """
     Generate approximate uniform distribution in Ax >= b.
     """
@@ -341,6 +344,22 @@ def RandomProjWalk(y_set,Y,A,b,params,M=None):
     N = params["N"] if "N" in params else 2
     # The capacity constraint
     K = params["K"] if "K" in params else N * d
+    
+    # Transform back to a hypercube
+    E = np.eye(d)
+    E_inv = np.eye(d)
+    for i in range(d-1):
+        E[i+1,i] = -1
+        for j in range(i+1):
+            E_inv[i+1,j] = 1
+    # Transform
+    y_set = E @ y_set_origin
+    A = A_origin[2*d:2*d+1,:] @ E_inv
+    b = b_origin[2*d:2*d+1,:]
+    Y = E @ Y_origin @ E.T
+    # print(y_set.shape,A.shape,Y.shape)
+    # print(E_inv,A[0,:])
+    # print(A,b)
     
     # Number of points to approximate covariance (N in the paper)
     if M is None:
@@ -367,10 +386,11 @@ def RandomProjWalk(y_set,Y,A,b,params,M=None):
         # Stopping steps
         stop_time = np.random.randint(0,K,(n,))
         stop_time = K * np.ones((n,), dtype=np.int32)
-        print(M,stop_time.max())
+        # print(M,stop_time.max())
         
         # Each update
         for j in range(np.max(stop_time)+1):
+            # print(j)
             # Count outside points
             block = np.zeros((n,),dtype=np.int16)
             # Block indices that are larger than stop_time
@@ -378,7 +398,7 @@ def RandomProjWalk(y_set,Y,A,b,params,M=None):
             # print(n - block.sum())
             
             while np.sum(block) < n:
-                print(np.sum(block),n)
+                # print(np.sum(block),n)
                 # Indices to be re-selected
                 ind = np.where(block == 0)[0]
                 num = ind.shape[0]
@@ -394,17 +414,20 @@ def RandomProjWalk(y_set,Y,A,b,params,M=None):
                 
                 # Block indices with new points inside P
                 y_min = np.min(temp,axis=0) - 1
-                y_max = K - np.max(temp,axis=0)
+                y_max = N - np.max(temp,axis=0)
                 if A.shape[0] > 0:
                     violation = np.min(A @ temp - b, axis=0)
                     check = np.minimum( np.minimum(violation, y_min), y_max )
                 else:
                     check = np.minimum(y_min, y_max)
+                # check = np.min(A @ temp - b, axis=0)
                 valid = np.where(check >= 0)[0]
-                
+                 
                 # Update
                 block[ind[ valid ]] = 1
                 y_update[:,ind[valid]] = temp[:,valid]
+                # if valid.shape[0] > 0:
+                #     print(temp[:,valid[0]])
             break
         
         # Update the set of points
@@ -417,6 +440,6 @@ def RandomProjWalk(y_set,Y,A,b,params,M=None):
         # for i in range(y_set.shape[1]):
         #     Y += ( temp[:,i:i+1] @ temp[:,i:i+1].T )
         # Y /= y_set.shape[1]
-        # # print(Y)
+        # print(Y)
             
-    return y_set[:,m:]
+    return E_inv @ y_set[:,m:]

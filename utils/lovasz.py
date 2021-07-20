@@ -295,6 +295,41 @@ def SO(F,x,eps,delta,params):
     
     # Return
     return { "hat_F":hat_F, "hat_grad":hat_grad, "total":num_samples*d*2 }
+
+def SOCons(F,x,eps,delta,params):
+    """
+    Compute an (eps,delta)-SO oracle and empirical obj value at x.
+    """
+    
+    # Retrieve parameters
+    d = params["d"] if "d" in params else 1
+    N = params["N"] if "N" in params else 2
+    # sigma = params["sigma"] if "sigma" in params else 1
+    
+    # Number of samples needed
+    num_samples = RequiredSamples(delta,eps/2/N/np.sqrt(d),params)
+    # print(num_samples)
+    
+    if params["closed_form"]:
+        hat_F, hat_grad = LovaszCons(F, x, params, num_samples)
+    else:
+        # Record empirical mean and empirical subgradient
+        hat_F = 0
+        hat_grad = np.zeros((d,))
+        
+        # Simulate
+        for t in range(num_samples):
+            lov, grad = LovaszCons(F, x, params)
+            
+            # Update
+            hat_F += lov
+            hat_grad += grad
+        
+        hat_F /= num_samples
+        hat_grad /= num_samples
+    
+    # Return
+    return { "hat_F":hat_F, "hat_grad":hat_grad, "total":num_samples*d*2 }
     
     
     
