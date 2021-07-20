@@ -20,18 +20,18 @@ import solvers
 params = {}
 
 # Dimension and scale
-params["N"] = int(sys.argv[1])
-params["M"] = int(sys.argv[2])
-# params["N"] = 10
-# params["M"] = 12
+# params["N"] = int(sys.argv[1])
+# params["M"] = int(sys.argv[2])
+params["N"] = 5
+params["M"] = 2
 params["d"] = params["M"]
 # params["N"] = params["scale"] * params["d"]
 # Regularization constraint
 params["c"] = 50 / params["M"]
 params["K"] = int(params["N"] * params["d"] / 3)
-params["trunc"] = bool(int(sys.argv[3]))
+# params["trunc"] = bool(int(sys.argv[3]))
 # params["eta"] = float(sys.argv[4])
-params["eta"] = 1 if params["trunc"] else 0.05
+# params["eta"] = 1 if params["trunc"] else 0.05
 
 # Optimality criteria
 params["eps"] = params["N"] / 2
@@ -46,15 +46,15 @@ gaps = np.zeros((2,))
 rate = np.zeros((2,))
 
 # Open the output file
-f_out = open("./results/queue_uncons_" + str(params["N"]) + "_" + str(params["M"]) + "_" + str(params["trunc"]) + ".txt", "w")
+# f_out = open("./results/queue_uncons_" + str(params["N"]) + "_" + str(params["M"]) + "_" + str(params["trunc"]) + ".txt", "w")
 
-for t in range(5):
+for t in range(1):
     print(t)
     model = models.queueing_or_model.QueueRegORModel(params)
     
-    f_out.write(str(t))
-    f_out.write("\n")
-    f_out.flush()
+    # f_out.write(str(t))
+    # f_out.write("\n")
+    # f_out.flush()
     
     # Lipschitz constant and closed-form objective function
     if "L" in model:
@@ -64,9 +64,9 @@ for t in range(5):
         params["L"] = 1
         params["closed_form"] = False
     
-    f_out.write(str(t))
-    f_out.write("\n")
-    f_out.flush()
+    # f_out.write(str(t))
+    # f_out.write("\n")
+    # f_out.flush()
     
     # if "f" in model:
     #     # Plot the function
@@ -96,18 +96,19 @@ for t in range(5):
 #     # f_opt = model["f"](model["x_opt"])
     
     # Use truncated subgradient descent method
-    output_grad = solvers.gradient_solver.GradientProjSolver(model["F"],params,params["trunc"])
+    # output_grad = solvers.gradient_solver.GradientProjSolver(model["F"],params,params["trunc"])
+    output_grad = solvers.random_walk_solver.RandomWalkProjSolver(model["F"],params)
     print(output_grad)
     
     # Update records
     total_samples[0] = ( total_samples[0] * t + output_grad["total"] ) / (t+1)
     # gaps[0] = ( gaps[0] * t + model["f"](output_grad["x_opt"]) - f_opt ) / (t+1)
 
-    f_out.write(str(output_grad["total"]))
-    f_out.write("\n")
-    # f_out.write(str(model["f"](output_grad["x_opt"]) - f_opt))
+    # f_out.write(str(output_grad["total"]))
     # f_out.write("\n")
-    f_out.flush()
+    # # f_out.write(str(model["f"](output_grad["x_opt"]) - f_opt))
+    # # f_out.write("\n")
+    # f_out.flush()
     
     sample = np.zeros((5000,))
     for i in range(5000):
@@ -120,10 +121,10 @@ for t in range(5):
 # #         else:
 # #             rate[0] = ( rate[0] * t + 0 ) / (t+1)
 
-f_out.write("\n")
-f_out.write( " ".join([ str(total_samples[0]),str(gaps[0]),str(rate[0]) ]) )
+# f_out.write("\n")
+# f_out.write( " ".join([ str(total_samples[0]),str(gaps[0]),str(rate[0]) ]) )
 
-f_out.close()
+# f_out.close()
 
 
 # sample = np.zeros((5000,))

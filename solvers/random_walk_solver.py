@@ -243,8 +243,19 @@ def RandomWalkProjSolver(F,params):
     # K = math.ceil(d**3 * 2e3)
     
     # Record polytope Ax >= b
-    A = np.zeros((0,d))
-    b = np.zeros((0,1))
+    # Basic block
+    E = np.eye(d)
+    for i in range(d-1):
+        E[i+1,i] = -1
+    A = np.zeros((2*d+1,d))
+    A[:d,:] = E
+    A[d:2*d,:] = -E
+    A[-1,-1] = -1
+    # b = np.zeros((0,1))
+    b = np.concatenate((np.ones((d,1))*(1+1e-7),
+                        np.ones((d,1))*(-N+1e-7),
+                        [[-K]]
+                        ))
     # Initial analytical center
     x = np.ones((d,)) * (N+1) / 4
     z = np.cumsum(x)
@@ -254,8 +265,8 @@ def RandomWalkProjSolver(F,params):
     for t in range(T):
         
         # Separation oracle
-        # print(z)
-        so = SO(F,z,eps/8*min(N,N),delta/4,params)
+        print(z)
+        so = SO(F,z,eps/8*min(N,N)*800,delta/4,params)
         c = -so["hat_grad"]
         # print(c)
         # c = - np.ones((d,))
@@ -274,7 +285,7 @@ def RandomWalkProjSolver(F,params):
         temp = np.concatenate((z,[hat_F]),axis=0) # (d+1) vector
         temp = np.reshape(temp,(1,d+1)) # 1*(d+1) vector
         S = np.concatenate((S,temp),axis=0)
-        # print(hat_F)
+        print(hat_F)
         # print(np.sum(c*x_opt),np.sum(c*z))
         
         # Warm-start distribution
@@ -292,8 +303,10 @@ def RandomWalkProjSolver(F,params):
         Y /= y_set.shape[1]
         # print(Y)
         
+        print("here!")
         # Approximate uniform distribution
-        y_set = RandomWalk(y_set,Y,A,b,params,M)
+        y_set = RandomProjWalk(y_set,Y,A,b,params,M)
+        print("here!!")
         
         # Update analytical center
         y_set = y_set[:,np.random.permutation(np.arange(2*M))]
@@ -354,7 +367,7 @@ def RandomProjWalk(y_set,Y,A,b,params,M=None):
         # Stopping steps
         stop_time = np.random.randint(0,K,(n,))
         stop_time = K * np.ones((n,), dtype=np.int32)
-        # print(M,stop_time.max())
+        print(M,stop_time.max())
         
         # Each update
         for j in range(np.max(stop_time)+1):
@@ -365,6 +378,7 @@ def RandomProjWalk(y_set,Y,A,b,params,M=None):
             # print(n - block.sum())
             
             while np.sum(block) < n:
+                print(np.sum(block),n)
                 # Indices to be re-selected
                 ind = np.where(block == 0)[0]
                 num = ind.shape[0]
