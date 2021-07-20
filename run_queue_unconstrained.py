@@ -28,8 +28,8 @@ params["d"] = params["M"]
 # params["N"] = params["scale"] * params["d"]
 # Regularization constraint
 params["c"] = 50 / params["M"]
-# params["K"] = params["N"] * params["d"]
-params["K"] = int(params["N"] * params["d"] / 3)
+params["K"] = params["N"] * params["d"]
+# params["K"] = int(params["N"] * params["d"] / 3)
 # params["trunc"] = bool(int(sys.argv[3]))
 # params["eta"] = float(sys.argv[4])
 # params["eta"] = 1 if params["trunc"] else 0.05
@@ -98,7 +98,8 @@ for t in range(1):
     
     # Use truncated subgradient descent method
     # output_grad = solvers.gradient_solver.GradientProjSolver(model["F"],params,params["trunc"])
-    output_grad = solvers.random_walk_solver.RandomWalkProjSolver(model["F"],params)
+    output_grad = solvers.vaidya_solver.VaidyaProjSolver(model["F"],params)
+    # output_grad = solvers.random_walk_solver.RandomWalkProjSolver(model["F"],params)
     print(output_grad)
     
     # Update records

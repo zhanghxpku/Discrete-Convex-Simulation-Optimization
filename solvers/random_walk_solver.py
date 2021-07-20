@@ -263,7 +263,7 @@ def RandomWalkProjSolver(F,params):
     x = np.ones((d,)) * (N+1) / 4
     z = np.cumsum(x)
     # Initial uniform distribution
-    y_set = E_inv @ np.random.uniform(1,N,(d,M))
+    y_set = E_inv @ np.random.uniform(1,N,(d,M*10))
     
     for t in range(T):
         
@@ -282,7 +282,7 @@ def RandomWalkProjSolver(F,params):
         c = np.reshape(c,(1,d))
         A = np.concatenate((A,c), axis=0)
         b = np.concatenate((b,[[np.sum(c*z)]]),axis=0)
-        print(A,b)
+        # print(A,b)
         
         # Update S
         temp = np.concatenate((z,[hat_F]),axis=0) # (d+1) vector
@@ -342,8 +342,6 @@ def RandomProjWalk(y_set_origin,Y_origin,A_origin,b_origin,params,M=None):
     # Retrieve parameters
     d = params["d"] if "d" in params else 1
     N = params["N"] if "N" in params else 2
-    # The capacity constraint
-    K = params["K"] if "K" in params else N * d
     
     # Transform back to a hypercube
     E = np.eye(d)
@@ -376,7 +374,7 @@ def RandomProjWalk(y_set_origin,Y_origin,A_origin,b_origin,params,M=None):
     # print(U[:3,:3])
     
     while y_set.shape[1] < 2*M + m:
-        # print(y_set.shape[1],2*M+m)
+        print(y_set.shape[1],2*M+m)
         # Num of points to be updated
         n = min( 2*M + m - y_set.shape[1], y_set.shape[1] )
         # Initial points
