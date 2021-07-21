@@ -260,16 +260,16 @@ def RandomWalkProjSolver(F,params):
                         [[-K]]
                         ))
     # Initial analytical center
-    x = np.ones((d,)) * (N+1) / 4
+    x = np.ones((d,)) * (N+1) / 2
     z = np.cumsum(x)
     # Initial uniform distribution
-    y_set = E_inv @ np.random.uniform(1,N,(d,M*10))
+    y_set = E_inv @ np.random.uniform(1,N,(d,M))
     
     for t in range(T):
         
         # Separation oracle
         print(z)
-        so = SOCons(F,z,eps/8*min(N,N)*10,delta/4,params)
+        so = SOCons(F,z,eps/8*min(N,N)*7,delta/4,params)
         c = -so["hat_grad"]
         # print(c)
         # c = - np.ones((d,))
