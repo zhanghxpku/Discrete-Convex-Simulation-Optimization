@@ -551,7 +551,7 @@ def DimensionReductionProjSolver(F,params):
 
             # The LLL algorithm
             basis = LLL(L_cur,K)
-            # print(basis)
+            # print("basis",basis)
             # print(K)
             # Choose the shortest vector
             norm = np.diag( (basis @ K) @ basis.T )
@@ -630,7 +630,7 @@ def DimensionReductionProjSolver(F,params):
                 z[i] = x[i].X - x[i+d].X
             # print(z)
             Z[d-d_cur,:] = z
-            # print(Z)
+            # print("Z",Z)
             # try:
             #     for i in range(d):
             #         z[i] = x[i].X
@@ -682,6 +682,7 @@ def DimensionReductionProjSolver(F,params):
         # L[d-d_cur+1:,:] = L[d-d_cur+1:,:] - L[d-d_cur+1:,:] @ v.reshape((d,1))\
         #                                 @ v.reshape((d,1)).T / np.sum(v*v)
         # Compute a basis by Hermite normal form
+        # print(Z[:d-d_cur+1,:])
         _, R = column_style_hermite_normal_form(Z[:d-d_cur+1,:])
         V = R[:,d-d_cur+1:]
         L[d-d_cur+1:,:] = (V @ np.linalg.inv(V.T @ V)).T
@@ -692,6 +693,7 @@ def DimensionReductionProjSolver(F,params):
     if not early_stop:
         # Solve the one-dimensional problem
         v = L[-1,:] # Direction of the line
+        v /= np.min( v[v != 0] )
         y_bar = np.mean(y_set,axis=1) # Point on the line
         # print(v,y_bar)
         
@@ -729,7 +731,6 @@ def DimensionReductionProjSolver(F,params):
         try:
             for i in range(d):
                 z[i] = x[i].X
-            # print(z)
             
             # Find the upper and lower bound of one-dim problem
             bound = [0,0]
@@ -749,8 +750,9 @@ def DimensionReductionProjSolver(F,params):
             # Shift to a problem with leftmost point 1
             z = z + (bound[0] - 1) * v
             M = bound[1] - bound[0] + 1
-            # Define a one-dimensional problem
-            G = lambda alpha: float(F( z + alpha[0] * v ))
+            print(z,z+M*v)
+            # Define an one-dimensional problem
+            G = lambda kapa: float(F( z + kapa[0] * v ))
             params_new = params.copy()
             params_new["N"] = M
             params_new["d"] = 1

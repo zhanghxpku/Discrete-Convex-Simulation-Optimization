@@ -37,16 +37,25 @@ def GPSSolver(F,params):
     # Count simulation runs
     total_samples = 0
     
-    # Initial polytope Ax >= b
-    A = np.concatenate( (np.eye(d),-np.eye(d)), axis=0 )
-    b = np.concatenate((np.ones(d,),-N * np.ones((d,))))
-    # print(A.shape,b.shape)
-    # Initial volumetric center
-    z = (N+1)/2 * np.ones((d,))
+    # Basic block
+    E = np.eye(d)
+    E_inv = np.eye(d)
+    for i in range(d-1):
+        E[i+1,i] = -1
+        for j in range(i+1):
+            E_inv[i+1,j] = 1
+
+    # Initial points
+    x_0 = E_inv @ np.random.uniform(1,N,(d,s))
+    
+    
+    
+    # Step 0
 
     
     # Round to an integral solution
-    x_opt = Round(F,x_bar,params)["x_opt"]
+    # x_opt = Round(F,x_bar,params)["x_opt"]
+    x_opt = 0
     
     # Stop timing
     stop_time = time.time()
