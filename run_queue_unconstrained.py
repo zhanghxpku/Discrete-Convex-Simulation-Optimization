@@ -31,8 +31,9 @@ params["c"] = 50 / params["M"]
 params["K"] = params["N"] * params["d"]
 # params["K"] = int(params["N"] * params["d"] / 3)
 # params["trunc"] = bool(int(sys.argv[3]))
+params["trunc"] = True
 # params["eta"] = float(sys.argv[4])
-# params["eta"] = 1 if params["trunc"] else 0.05
+params["eta"] = 1 if params["trunc"] else 0.05
 
 # Optimality criteria
 params["eps"] = params["N"] / 2
@@ -97,10 +98,10 @@ for t in range(1):
 #     # f_opt = model["f"](model["x_opt"])
     
     # Use truncated subgradient descent method
-    # output_grad = solvers.gradient_solver.GradientProjSolver(model["F"],params,params["trunc"])
+    output_grad = solvers.gradient_solver.GradientProjSolver(model["F"],params,params["trunc"])
     # output_grad = solvers.vaidya_solver.VaidyaProjSolver(model["F"],params)
     # output_grad = solvers.random_walk_solver.RandomWalkProjSolver(model["F"],params)
-    output_grad = solvers.dim_reduction_solver.DimensionReductionProjSolver(model["F"],params)
+    # output_grad = solvers.dim_reduction_solver.DimensionReductionProjSolver(model["F"],params)
     print(output_grad)
     
     # Update records

@@ -476,7 +476,7 @@ def DimensionReductionProjSolver(F,params):
     # Record points where SO is called and their empirical means
     S = np.zeros((d+1,0))
     # Simulation cost of each separation oracle
-    so_samples = RequiredSamples(delta/4,eps/8/np.sqrt(d)*10,params)
+    so_samples = RequiredSamples(delta/4,eps/8/np.sqrt(d)*2,params)
     
     # The current dimension
     d_cur = d
@@ -559,7 +559,7 @@ def DimensionReductionProjSolver(F,params):
             # print(norm)
 
             # Stopping criterion
-            if np.min(norm) < 1e2 / d**2:
+            if np.min(norm) < 1e1 / d**2:
             # if np.min(norm) < 300:
                 i_short = np.argmin( norm )
                 L_cur[0,:] = basis[i_short,:]
@@ -572,9 +572,9 @@ def DimensionReductionProjSolver(F,params):
                 z_k = z_new
                 break
         
-        # # Check if intersection is empty
-        # if early_stop:
-        #     break
+        # Check if intersection is empty
+        if early_stop:
+            break
         
         # Dimension reduction
         # L[d-d_cur:,:] = L_cur
@@ -645,6 +645,7 @@ def DimensionReductionProjSolver(F,params):
         # Update the point set
         y_set = y_set - v.reshape((d,1)) @ ((v.reshape((d,1)).T @ y_set - v_y)\
                                             / np.sum(v*v))
+        # print( np.sum(y_set[:,0] * v), v_y )
         # Remove outside points
         # y_min = np.min(y_set,axis=0) - 1
         # y_max = N - np.max(y_set,axis=0)
@@ -673,7 +674,7 @@ def DimensionReductionProjSolver(F,params):
                 
         # Update the uniform distribution in P
         C,z_k,y_set = next(RandomWalkProjApproximator(F,Y,y_set,A,b,params,True))
-        # print(C,z_k,y_set.shape)
+        print(z_k,y_set.shape)
         # Remove negative eigenvalues
         u = min( np.min(np.linalg.eigvalsh(C)), 0)
         C -= u * np.eye(d)
@@ -693,7 +694,7 @@ def DimensionReductionProjSolver(F,params):
     if not early_stop:
         # Solve the one-dimensional problem
         v = L[-1,:] # Direction of the line
-        v /= np.min( v[v != 0] )
+        v /= np.min( np.abs(v[v != 0]) )
         y_bar = np.mean(y_set,axis=1) # Point on the line
         # print(v,y_bar)
         
@@ -785,6 +786,7 @@ def DimensionReductionProjSolver(F,params):
             print(y_bar,L[-1,:])
     
     # Find the point with minimal empirical mean in S
+    print(S)
     i_min = np.argmin(S[-1,:])
     x_bar = S[:-1,i_min]
     # Round to an integral solution
@@ -857,7 +859,7 @@ def RandomWalkProjApproximator(F,Y,y_in,A_in,b_in,params,centroid=False):
     while True:
 
         # Separation oracle
-        so = SOCons(F,y_bar[:,0],eps/4*min(N,N)*10,delta/4,params)
+        so = SOCons(F,y_bar[:,0],eps/4*min(N,N)*2,delta/4,params)
         c = -so["hat_grad"]
         hat_F = so["hat_F"]
         s = np.concatenate((y_bar,[[hat_F]]),axis=0)
