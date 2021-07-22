@@ -13,3 +13,4 @@ from .gradient_solver import *
 from .vaidya_solver import *
 from .random_walk_solver import *
 from .dim_reduction_solver import *
+from .gps_solver import *

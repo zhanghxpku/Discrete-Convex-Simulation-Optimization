@@ -23,7 +23,7 @@ params = {}
 # params["N"] = int(sys.argv[1])
 # params["M"] = int(sys.argv[2])
 params["N"] = 10
-params["M"] = 8
+params["M"] = 4
 params["d"] = params["M"]
 # params["N"] = params["scale"] * params["d"]
 # Regularization constraint
@@ -98,10 +98,11 @@ for t in range(1):
 #     # f_opt = model["f"](model["x_opt"])
     
     # Use truncated subgradient descent method
-    output_grad = solvers.gradient_solver.GradientProjSolver(model["F"],params,params["trunc"])
+    # output_grad = solvers.gradient_solver.GradientProjSolver(model["F"],params,params["trunc"])
     # output_grad = solvers.vaidya_solver.VaidyaProjSolver(model["F"],params)
     # output_grad = solvers.random_walk_solver.RandomWalkProjSolver(model["F"],params)
     # output_grad = solvers.dim_reduction_solver.DimensionReductionProjSolver(model["F"],params)
+    output_grad = solvers.gps_solver.GPSSolver(model["F"],params)
     print(output_grad)
     
     # Update records
