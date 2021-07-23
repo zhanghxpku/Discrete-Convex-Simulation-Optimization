@@ -27,12 +27,12 @@ def GPSSolver(F,params):
     delta = params["delta"] if "delta" in params else 1e-6
     
     # Parameters
-    r = 1000
+    r = 10
     # r = RequiredSamples(delta/2,eps/4,params)
-    s = 100
-    a = 3
-    b = 1.5
-    sig = 2.5
+    s = 10
+    a = 1
+    b = 4
+    sig = 1e-5
     
     # Start timing
     start_time = time.time()
@@ -48,7 +48,7 @@ def GPSSolver(F,params):
             E_inv[i+1,j] = 1
 
     # Initial points
-    x_0 = E_inv @ np.random.uniform(1,N,(d,s))
+    x_0 = E_inv @ np.random.randint(1,N,(d,s))
     # Store existing points
     S = {}
     for i in range(s):        
@@ -112,11 +112,11 @@ def GPSSolver(F,params):
         
         # Check the stopping criterion
         g_hat_opt_new = np.min(records[:,1])
-        print(g_hat_opt_new,len(S))
+        print(g_hat_opt_new,x_0[:,np.argmin(records[:,1])],records[np.argmin(records[:,1]),:])
         if g_hat_opt_new > g_hat_opt - 2*eps / d / np.sqrt(N):
             count += 1
-        if count > 10:
-            break
+        # if count > 10:
+        #     break
         g_hat_opt = g_hat_opt_new
     
     # Round to an integral solution
@@ -142,7 +142,7 @@ def ARS(x_0,records,a,b,sig,params):
     
     # Keep sampling until acceptance
     while True:    
-        y = np.cumsum(np.random.uniform(1,N,(d,)))
+        y = np.cumsum(np.random.randint(1,N,(d,)))
         # Compute the conditional expectation and variance
         cond_exp, cond_var = CondProb(y,x_0,records,a,b,sig)
         prob = stats.norm.cdf(min_val, loc=cond_exp, scale=np.sqrt(cond_var))
@@ -160,7 +160,7 @@ def MCCS(x_0,records,a,b,sig,params):
     # Retrieve parameters
     d = params["d"] if "d" in params else 1
     # Number of steps
-    T = 200
+    T = 1000
     
     # Current sample-minimum obj value
     min_val = np.min(records[:,1])
@@ -224,7 +224,7 @@ def GammaVec(x,x_0,a):
     The gamma vector.
     """
     
-    return np.exp(-a * np.linalg.norm(x-x_0.T, axis = -1))
+    return np.exp(-a * np.linalg.norm(x-x_0.T, axis = -1)**0.5)
     
     
 def GammaMat(x_0,a):
@@ -239,7 +239,7 @@ def GammaMat(x_0,a):
     # if np.min(diag + diag.T - 2 * x_0.T @ x_0) < 0:
     #     print(np.min(diag + diag.T - 2 * x_0.T @ x_0))
     
-    return np.exp(-a * np.sqrt( dist ) )
+    return np.exp(-a * np.sqrt( dist )**0.5 )
 
 
 def Lambda(x,x_0,b):
