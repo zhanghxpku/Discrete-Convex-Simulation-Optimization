@@ -80,15 +80,15 @@ for t in range(1):
         
     #     plt.plot(x,y)
     # else:
-    #     # Plot the function
-    #     x = np.linspace(1,params["N"],params["N"])
-    #     y = np.zeros((params["N"],))
+        # # Plot the function
+        # x = np.linspace(1,params["N"],params["N"])
+        # y = np.zeros((params["N"],))
         
-    #     for i,z in enumerate(x):
-    #         for _ in range(700):
-    #             y[i] += model["F"]([z,z,z,z,z])
-    #     y /= 700
-    #     plt.plot(x,y)
+        # for i,z in enumerate(x):
+        #     for _ in range(700):
+        #         y[i] += model["F"]([z])
+        # y /= 700
+        # plt.plot(x,y)
     
 #     # # Write the obj values
 #     # f_out.write(" ".join([ str(z) for z in y ]))
@@ -99,10 +99,10 @@ for t in range(1):
     
     # Use truncated subgradient descent method
     # output_grad = solvers.gradient_solver.GradientProjSolver(model["F"],params,params["trunc"])
-    # output_grad = solvers.vaidya_solver.VaidyaProjSolver(model["F"],params)
+    output_grad = solvers.vaidya_solver.VaidyaProjSolver(model["F"],params)
     # output_grad = solvers.random_walk_solver.RandomWalkProjSolver(model["F"],params)
     # output_grad = solvers.dim_reduction_solver.DimensionReductionProjSolver(model["F"],params)
-    output_grad = solvers.gps_solver.GPSSolver(model["F"],params)
+    # output_grad = solvers.gps_solver.GPSSolver(model["F"],params)
     print(output_grad)
     
     # Update records

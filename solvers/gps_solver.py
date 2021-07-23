@@ -29,10 +29,10 @@ def GPSSolver(F,params):
     # Parameters
     r = 10
     # r = RequiredSamples(delta/2,eps/4,params)
-    s = 10
+    s = 5
     a = 1
     b = 4
-    sig = 1e-5
+    sig = 1e-2
     
     # Start timing
     start_time = time.time()
@@ -48,7 +48,7 @@ def GPSSolver(F,params):
             E_inv[i+1,j] = 1
 
     # Initial points
-    x_0 = E_inv @ np.random.randint(1,N,(d,s))
+    x_0 = E_inv @ np.random.randint(1,N+1,(d,s))
     # Store existing points
     S = {}
     for i in range(s):        
@@ -75,7 +75,7 @@ def GPSSolver(F,params):
     
     # Iterate until stopping criterion is satisfised
     while True:
-        # Steps 1&2
+        # Steps 1 & 2
         samples_new = np.zeros((r,))
         for i in range(s):
             # Generate new samples
@@ -83,7 +83,7 @@ def GPSSolver(F,params):
             # Simulate on new samples
             for j in range(r):
                 samples_new[j] = F(x_new)
-        
+                    
             # Step 3: Update the mean and variance
             if array2str(x_new) in S:
                 ind = S[array2str(x_new)]
@@ -109,14 +109,17 @@ def GPSSolver(F,params):
         
         # Update total number of samples
         total_samples += r * s
+        print(np.max(records[:,0]))
         
         # Check the stopping criterion
         g_hat_opt_new = np.min(records[:,1])
         print(g_hat_opt_new,x_0[:,np.argmin(records[:,1])],records[np.argmin(records[:,1]),:])
         if g_hat_opt_new > g_hat_opt - 2*eps / d / np.sqrt(N):
             count += 1
-        # if count > 10:
-        #     break
+        else:
+            count = 0
+        if count > 10:
+            break
         g_hat_opt = g_hat_opt_new
     
     # Round to an integral solution
@@ -159,6 +162,7 @@ def MCCS(x_0,records,a,b,sig,params):
     
     # Retrieve parameters
     d = params["d"] if "d" in params else 1
+    N = params["N"] if "N" in params else 2
     # Number of steps
     T = 1000
     
@@ -166,6 +170,8 @@ def MCCS(x_0,records,a,b,sig,params):
     min_val = np.min(records[:,1])
     # Current sample-minimum as the starting point
     y = x_0[:,np.argmin(records[:,1])]
+    # y = x_0[:,-1]
+    # y = np.cumsum(np.random.randint(0,N,(d,)))
     # Compute the conditional expectation and variance
     cond_exp, cond_var = CondProb(y,x_0,records,a,b,sig)
     prob = stats.norm.cdf(min_val, loc=cond_exp, scale=np.sqrt(cond_var))
@@ -180,7 +186,7 @@ def MCCS(x_0,records,a,b,sig,params):
         else:
             cur_val = y[ind] - y[ind - 1]
         # New coordinate
-        new_val = np.random.randint(1,d)
+        new_val = np.random.randint(1,N)
         new_val += int(new_val >= cur_val)
         
         # The new point
@@ -191,7 +197,7 @@ def MCCS(x_0,records,a,b,sig,params):
         prob_new = stats.norm.cdf(min_val, loc=cond_exp, scale=np.sqrt(cond_var))
         if stats.uniform.rvs() <= prob_new / prob:
             y, prob = z, prob_new
-        
+    
     return y
 
 
@@ -205,6 +211,9 @@ def CondProb(x,x_0,records,a,b,sig):
     gamma = GammaVec(x,x_0,a)
     Gamma = GammaMat(x_0,a)
     Sigma = np.diag( records[:,2] / records[:,0] )
+    
+    if np.abs( np.sum(lamb) - 1 ) > 1e-5:
+        print(x,lamb)
     
     # Conditional expectation
     cond_exp = np.sum(lamb * records[:,1])
@@ -249,8 +258,8 @@ def Lambda(x,x_0,b):
     """
     
     diff = np.linalg.norm(x - x_0.T, axis=-1)
-    if np.sum(diff == 0) > 0:
-        ind = (diff == 0)
+    if np.sum(np.abs(diff) < 1e-5) > 0:
+        ind = (np.abs(diff) < 1e-5)
         ret = np.zeros((x_0.shape[1],))
         ret[ind] = 1
     else:
@@ -262,7 +271,7 @@ def Lambda(x,x_0,b):
 
 def array2str(y):
     """
-    Transform a numpy array to a string
+    Transform a numpy array to a string.
 
     """
-    return ",".join([str(z) for z in y])
+    return ",".join([str(int(z)) for z in y])
