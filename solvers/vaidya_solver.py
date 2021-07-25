@@ -236,7 +236,7 @@ def VaidyaProjSolver(F,params):
             # Separation oracle
             # ti = time.time()
             # print(z)
-            so = SOCons(F,z,eps/8*min(N,2**t*N/4)*10,delta/4,params)
+            so = SOCons(F,z,eps/8*min(N,2**t*N/1)*params["eta"],delta/4,params)
             c = -so["hat_grad"]
             hat_F = so["hat_F"]
             # beta = np.sum(c*z) - math.sqrt( 2*(c.T @ H_inv) @ c\

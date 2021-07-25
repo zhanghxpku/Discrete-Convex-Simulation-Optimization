@@ -57,7 +57,7 @@ def WaitingTime(y,service,params):
     # Gamma_1 = stats.uniform.rvs(0.75,0.5)
     
     # Generate intensity functions (i-th hour)
-    lambda_1 = lambda t: 2 * N * ( 1 - np.abs( t - 12 ) / 12 )
+    lambda_1 = lambda t: 0.5 * N * ( 1 - np.abs( t - 12 ) / 12 )
     
     # Maximal rates
     max_1 = lambda_1(12)

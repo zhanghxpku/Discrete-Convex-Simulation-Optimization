@@ -268,8 +268,8 @@ def RandomWalkProjSolver(F,params):
     for t in range(T):
         
         # Separation oracle
-        print(z)
-        so = SOCons(F,z,eps/8*min(N,N)*7,delta/4,params)
+        # print(z)
+        so = SOCons(F,z,eps/8*min(N,N)*params["eta"],delta/4,params)
         c = -so["hat_grad"]
         # print(c)
         # c = - np.ones((d,))
@@ -306,7 +306,7 @@ def RandomWalkProjSolver(F,params):
         Y /= y_set.shape[1]
         # print(Y)
         
-        print("here!")
+        # print("here!")
         # Approximate uniform distribution
         y_set = RandomProjWalk(y_set,Y,A,b,params,M)
         # print("here!!")
@@ -374,7 +374,7 @@ def RandomProjWalk(y_set_origin,Y_origin,A_origin,b_origin,params,M=None):
     # print(U[:3,:3])
     
     while y_set.shape[1] < 2*M + m:
-        print(y_set.shape[1],2*M+m)
+        # print(y_set.shape[1],2*M+m)
         # Num of points to be updated
         n = min( 2*M + m - y_set.shape[1], y_set.shape[1] )
         # Initial points

@@ -476,7 +476,7 @@ def DimensionReductionProjSolver(F,params):
     # Record points where SO is called and their empirical means
     S = np.zeros((d+1,0))
     # Simulation cost of each separation oracle
-    so_samples = RequiredSamples(delta/4,eps/8/np.sqrt(d)*2,params)
+    so_samples = RequiredSamples(delta/4,eps/8/np.sqrt(d)*params["eta"],params)
     
     # The current dimension
     d_cur = d
@@ -719,6 +719,15 @@ def DimensionReductionProjSolver(F,params):
         model.addConstrs(
             ( x[k+1] - x[k] <= N - 1e-3 for k in range(d-1) ),
             name="c4")
+        model.addConstr(
+             x[0] >= 1 + 1e-3,
+            name="c5")
+        model.addConstr(
+             x[0] <= N - 1e-3,
+            name="c6")
+        model.addConstr(
+             x[d-1] <= K_val - 1e-3,
+            name="c7")
         # # Set initial point
         # for i in range(d):
         #     x[i].start = y_bar[i]
@@ -751,9 +760,9 @@ def DimensionReductionProjSolver(F,params):
             # Shift to a problem with leftmost point 1
             z = z + (bound[0] - 1) * v
             M = bound[1] - bound[0] + 1
-            print(z,z+M*v)
+            print(z+v,z+M*v)
             # Define an one-dimensional problem
-            G = lambda kapa: float(F( z + kapa[0] * v ))
+            G = lambda kappa: float(F( z + kappa[0] * v ))
             params_new = params.copy()
             params_new["N"] = M
             params_new["d"] = 1
@@ -783,10 +792,10 @@ def DimensionReductionProjSolver(F,params):
         
         except AttributeError:
             print("One-dim problem failed.")
-            print(y_bar,L[-1,:])
+            # print(y_bar,L[-1,:])
     
     # Find the point with minimal empirical mean in S
-    print(S)
+    # print(S)
     i_min = np.argmin(S[-1,:])
     x_bar = S[:-1,i_min]
     # Round to an integral solution
@@ -859,7 +868,7 @@ def RandomWalkProjApproximator(F,Y,y_in,A_in,b_in,params,centroid=False):
     while True:
 
         # Separation oracle
-        so = SOCons(F,y_bar[:,0],eps/4*min(N,N)*2,delta/4,params)
+        so = SOCons(F,y_bar[:,0],eps/4*min(N,N)*params["eta"],delta/4,params)
         c = -so["hat_grad"]
         hat_F = so["hat_F"]
         s = np.concatenate((y_bar,[[hat_F]]),axis=0)
