@@ -33,13 +33,13 @@ params["K"] = params["N"] * params["d"]
 # params["trunc"] = bool(int(sys.argv[3]))
 params["trunc"] = True
 # method = int(sys.argv[1])
-method = 1
+method = 2
 
 if method == 0:
     params["eta"] = 5 if params["trunc"] else 0.05
 else:
     # params["eta"] = float(sys.argv[3])
-    params["eta"] = 5
+    params["eta"] = 30
 
 # Optimality criteria
 params["eps"] = params["N"] / 2
@@ -56,7 +56,7 @@ rate = np.zeros((2,))
 # Open the output file
 f_out = open("./results/queue_uncons_" + str(params["N"]) + "_"  + str(params["d"]) + "_" + str(method) + "_" + str(params["eta"]) + ".txt", "w")
 
-for t in range(5):
+for t in range(1):
     print(t)
     model = models.queueing_or_model.QueueRegORModel(params)
     

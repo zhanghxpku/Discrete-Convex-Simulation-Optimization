@@ -559,7 +559,7 @@ def DimensionReductionProjSolver(F,params):
             # print(norm)
 
             # Stopping criterion
-            if np.min(norm) < 1e1 / d**2:
+            if np.min(norm) < 1e1 / d_cur**2:
             # if np.min(norm) < 300:
                 i_short = np.argmin( norm )
                 L_cur[0,:] = basis[i_short,:]

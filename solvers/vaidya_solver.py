@@ -274,7 +274,7 @@ def VaidyaProjSolver(F,params):
         # Case II
         else:
             # Find the cutting-plane to be removed
-            i = np.argmin(alpha)
+            i = np.argmin(alpha[2*d+1:]) + 2*d + 1
             
             # Update A, b, S
             A = np.delete(A,i,axis=0)
