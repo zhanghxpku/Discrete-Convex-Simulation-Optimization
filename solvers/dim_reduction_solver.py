@@ -653,7 +653,7 @@ def DimensionReductionProjSolver(F,params):
         # check = np.minimum( np.minimum(violation, y_min), y_max )
         check = np.min(A @ y_set - b, axis=0)
         y_set = y_set[:,check >= 0]
-        print(y_set.shape)
+        # print(y_set.shape)
         
         # Check if intersection is empty
         if y_set.shape[1] == 0:
@@ -674,7 +674,7 @@ def DimensionReductionProjSolver(F,params):
                 
         # Update the uniform distribution in P
         C,z_k,y_set = next(RandomWalkProjApproximator(F,Y,y_set,A,b,params,True))
-        print(z_k,y_set.shape)
+        # print(z_k,y_set.shape)
         # Remove negative eigenvalues
         u = min( np.min(np.linalg.eigvalsh(C)), 0)
         C -= u * np.eye(d)
@@ -708,25 +708,25 @@ def DimensionReductionProjSolver(F,params):
         alpha = model.addVars(range(2), vtype = GRB.CONTINUOUS, name="alpha" )
         # Add constraints
         model.addConstrs(
-            ( y_bar[k] + (alpha[0]-alpha[1]) * v[k] <= x[k] + 1e-3 for k in range(d) ),
+            ( y_bar[k] + (alpha[0]-alpha[1]) * v[k] <= x[k] + 1e-7 for k in range(d) ),
             name="c1")
         model.addConstrs(
-            ( y_bar[k] + (alpha[0]-alpha[1]) * v[k] >= x[k] - 1e-3 for k in range(d) ),
+            ( y_bar[k] + (alpha[0]-alpha[1]) * v[k] >= x[k] - 1e-7 for k in range(d) ),
             name="c2")
         model.addConstrs(
-            ( x[k+1] - x[k] >= 1 + 1e-3 for k in range(d-1) ),
+            ( x[k+1] - x[k] >= 1 for k in range(d-1) ),
             name="c3")
         model.addConstrs(
-            ( x[k+1] - x[k] <= N - 1e-3 for k in range(d-1) ),
+            ( x[k+1] - x[k] <= N for k in range(d-1) ),
             name="c4")
         model.addConstr(
-             x[0] >= 1 + 1e-3,
+             x[0] >= 1,
             name="c5")
         model.addConstr(
-             x[0] <= N - 1e-3,
+             x[0] <= N,
             name="c6")
         model.addConstr(
-             x[d-1] <= K_val - 1e-3,
+             x[d-1] <= K_val,
             name="c7")
         # # Set initial point
         # for i in range(d):
@@ -760,7 +760,7 @@ def DimensionReductionProjSolver(F,params):
             # Shift to a problem with leftmost point 1
             z = z + (bound[0] - 1) * v
             M = bound[1] - bound[0] + 1
-            print(z+v,z+M*v)
+            # print(z+v,z+M*v)
             # Define an one-dimensional problem
             G = lambda kappa: float(F( z + kappa[0] * v ))
             params_new = params.copy()
@@ -777,7 +777,7 @@ def DimensionReductionProjSolver(F,params):
             # print(params_new)
             # Optimal point
             x_uni = z + output_uniform["x_opt"] * v
-            print(x_uni)
+            # print(x_uni)
             
             # Estimate the empirical mean of x_opt
             num_samples = RequiredSamples(delta/2,eps/4,params)
@@ -792,7 +792,7 @@ def DimensionReductionProjSolver(F,params):
         
         except AttributeError:
             print("One-dim problem failed.")
-            # print(y_bar,L[-1,:])
+            print(y_bar,L[-1,:])
     
     # Find the point with minimal empirical mean in S
     # print(S)
@@ -884,7 +884,7 @@ def RandomWalkProjApproximator(F,Y,y_in,A_in,b_in,params,centroid=False):
         y_set = y_set[:,violation >= 0]
         
         # Infeasible
-        print(y_set.shape)
+        # print(y_set.shape)
         if y_set.shape[1] == 0:
             yield None, None, None, None, None, None
         

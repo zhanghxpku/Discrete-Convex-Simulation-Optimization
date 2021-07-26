@@ -232,7 +232,7 @@ def VaidyaProjSolver(F,params):
     for t in range(T):
         
         # Case I
-        if np.min(alpha) >= q:
+        if alpha.shape[0] <= 2*d+1 or np.min(alpha[2*d+1:]) >= q:
             # Separation oracle
             # ti = time.time()
             # print(z)
@@ -279,7 +279,7 @@ def VaidyaProjSolver(F,params):
             # Update A, b, S
             A = np.delete(A,i,axis=0)
             b = np.delete(b,i,axis=0)
-            S = np.delete(S,i,axis=0)
+            S = np.delete(S,i-2*d-1,axis=0)
             
             # Update volumetric center
             # Number of Newton steps
