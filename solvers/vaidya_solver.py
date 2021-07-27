@@ -215,8 +215,8 @@ def VaidyaProjSolver(F,params):
     A[d:2*d,:] = -E
     A[-1,-1] = -1
     # b = np.zeros((0,1))
-    b = np.concatenate((np.ones((d,))*(1+1e-7),
-                        np.ones((d,))*(-N+1e-7),
+    b = np.concatenate((np.ones((d,))*(1),
+                        np.ones((d,))*(-N),
                         [-K]
                         ))
     

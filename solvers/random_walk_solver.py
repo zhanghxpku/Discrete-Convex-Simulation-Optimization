@@ -255,8 +255,8 @@ def RandomWalkProjSolver(F,params):
     A[d:2*d,:] = -E
     A[-1,-1] = -1
     # b = np.zeros((0,1))
-    b = np.concatenate((np.ones((d,1))*(1+1e-7),
-                        np.ones((d,1))*(-N+1e-7),
+    b = np.concatenate((np.ones((d,1))*(1),
+                        np.ones((d,1))*(-N),
                         [[-K]]
                         ))
     # Initial analytical center
@@ -299,6 +299,7 @@ def RandomWalkProjSolver(F,params):
         # print(y_set.shape)
         # Estimate the covarance matrix
         y_bar = np.mean(y_set,axis=1,keepdims=True)
+        # print(E @ y_bar)
         temp = y_set - y_bar
         Y = np.zeros((d,d))
         for i in range(y_set.shape[1]):
@@ -306,10 +307,8 @@ def RandomWalkProjSolver(F,params):
         Y /= y_set.shape[1]
         # print(Y)
         
-        # print("here!")
         # Approximate uniform distribution
         y_set = RandomProjWalk(y_set,Y,A,b,params,M)
-        # print("here!!")
         
         # Update analytical center
         y_set = y_set[:,np.random.permutation(np.arange(2*M))]
@@ -318,7 +317,7 @@ def RandomWalkProjSolver(F,params):
         
         # Early stopping
         F_new = np.mean(S[-3:,-1])
-        if F_new >= F_old - 2*eps / d / np.sqrt(N):
+        if F_new >= F_old + 0*eps / d / np.sqrt(N):
             break
         else:
             F_old = F_new
@@ -352,8 +351,8 @@ def RandomProjWalk(y_set_origin,Y_origin,A_origin,b_origin,params,M=None):
             E_inv[i+1,j] = 1
     # Transform
     y_set = E @ y_set_origin
-    A = A_origin[2*d:2*d+1,:] @ E_inv
-    b = b_origin[2*d:2*d+1,:]
+    A = A_origin[2*d:,:] @ E_inv
+    b = b_origin[2*d:,:]
     Y = E @ Y_origin @ E.T
     # print(y_set.shape,A.shape,Y.shape)
     # print(E_inv,A[0,:])
@@ -365,6 +364,7 @@ def RandomProjWalk(y_set_origin,Y_origin,A_origin,b_origin,params,M=None):
     # M = 800
     # Number of steps to approximate the uniform measure in P
     K = math.ceil(d**3 * 2e3)
+    K = math.ceil(100)
     # print(K)
     # K = 4000
     m = y_set.shape[1]
@@ -385,48 +385,53 @@ def RandomProjWalk(y_set_origin,Y_origin,A_origin,b_origin,params,M=None):
         stop_time = np.random.randint(0,K,(n,))
         stop_time = K * np.ones((n,), dtype=np.int32)
         # print(M,stop_time.max())
+        # Count the iteration of each point
+        block = np.zeros((n,),dtype=np.int16)
+        # j = 0
         
         # Each update
-        for j in range(np.max(stop_time)+1):
-            # print(j)
-            # Count outside points
-            block = np.zeros((n,),dtype=np.int16)
-            # Block indices that are larger than stop_time
-            block[ stop_time < j ] = 1
-            # print(n - block.sum())
+        # for j in range(np.max(stop_time)+1):
+        while np.sum( block >= stop_time ) < n:
+            # if j % 10 == 0:
+            #     print(j,np.min(block),np.sum( block >= stop_time ) )
+            # j += 1
             
-            while np.sum(block) < n:
+            # # Block indices that are larger than stop_time
+            # block[ stop_time < j ] = 1
+            # # print(n - block.sum())
+            
+            # while np.sum(block) < n:
                 # print(np.sum(block),n)
-                # Indices to be re-selected
-                ind = np.where(block == 0)[0]
-                num = ind.shape[0]
-                # Generate uniform distribution in ball
-                u = np.random.randn(d,num)
-                norm = np.linalg.norm(u,axis=0,keepdims=True)
-                r = eta * np.random.uniform(0,1,(1,num)) ** (1/d)
-                u *= (r / norm)
-                # Update step
-                y_delta = U @ u
-                # For checking the constraints
-                temp = y_update[:,ind] + y_delta
-                
-                # Block indices with new points inside P
-                y_min = np.min(temp,axis=0) - 1
-                y_max = N - np.max(temp,axis=0)
-                if A.shape[0] > 0:
-                    violation = np.min(A @ temp - b, axis=0)
-                    check = np.minimum( np.minimum(violation, y_min), y_max )
-                else:
-                    check = np.minimum(y_min, y_max)
-                # check = np.min(A @ temp - b, axis=0)
-                valid = np.where(check >= 0)[0]
-                 
-                # Update
-                block[ind[ valid ]] = 1
-                y_update[:,ind[valid]] = temp[:,valid]
-                # if valid.shape[0] > 0:
-                #     print(temp[:,valid[0]])
-            break
+            # Indices to be re-selected
+            ind = np.where(block < stop_time)[0]
+            num = ind.shape[0]
+            # Generate uniform distribution in ball
+            u = np.random.randn(d,num)
+            norm = np.linalg.norm(u,axis=0,keepdims=True)
+            r = eta * np.random.uniform(0,1,(1,num)) ** (1/d)
+            u *= (r / norm)
+            # Update step
+            y_delta = U @ u
+            # For checking the constraints
+            temp = y_update[:,ind] + y_delta
+            
+            # Block indices with new points inside P
+            y_min = np.min(temp,axis=0) - 1
+            y_max = N - np.max(temp,axis=0)
+            if A.shape[0] > 0:
+                violation = np.min(A @ temp - b, axis=0)
+                check = np.minimum( np.minimum(violation, y_min), y_max )
+            else:
+                check = np.minimum(y_min, y_max)
+            # check = np.min(A @ temp - b, axis=0)
+            valid = np.where(check >= 0)[0]
+             
+            # Update
+            block[ind[ valid ]] += 1
+            y_update[:,ind[valid]] = temp[:,valid]
+            # if valid.shape[0] > 0:
+            #     print(temp[:,valid[0]])
+        # break
         
         # Update the set of points
         y_set = np.concatenate((y_set,y_update),axis=1)
