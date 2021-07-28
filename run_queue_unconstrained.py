@@ -23,7 +23,7 @@ params = {}
 # params["N"] = int(sys.argv[3])
 # params["M"] = int(sys.argv[2])
 params["N"] = 10
-params["M"] = 16
+params["M"] = 4
 params["d"] = params["M"]
 # params["N"] = params["scale"] * params["d"]
 # Regularization constraint
@@ -33,7 +33,7 @@ params["K"] = params["N"] * params["d"]
 # params["trunc"] = bool(int(sys.argv[3]))
 params["trunc"] = True
 # method = int(sys.argv[1])
-method = 3
+method = 2
 
 if method == 0:
     params["eta"] = 5 if params["trunc"] else 0.05

@@ -27,7 +27,7 @@ def GPSSolver(F,params):
     delta = params["delta"] if "delta" in params else 1e-6
     
     # Parameters
-    r = 10
+    r = 100
     # r = RequiredSamples(delta/2,eps/4,params)
     s = 5
     a = 1
@@ -79,7 +79,8 @@ def GPSSolver(F,params):
         samples_new = np.zeros((r,))
         for i in range(s):
             # Generate new samples
-            x_new = MCCS(x_0,records,a,b,sig,params)
+            # x_new = MCCS(x_0,records,a,b,sig,params)
+            x_new = ARS(x_0,records,a,b,sig,params)
             # Simulate on new samples
             for j in range(r):
                 samples_new[j] = F(x_new)
@@ -118,7 +119,7 @@ def GPSSolver(F,params):
             count += 1
         else:
             count = 0
-        if count > 10:
+        if count > 100000:
             break
         g_hat_opt = g_hat_opt_new
     
