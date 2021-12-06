@@ -37,10 +37,7 @@ def GradientSolver(F,params,truncated=True):
     # Comparion of objective function values
     f_old = 0
     f_new = 0
-    # Check stopping criterion every 1000 iterations
-    interval = RequiredSamples(delta/4,eps/16/np.sqrt(d),params)
-    # print(interval)
-    
+
     # Iterate numbers and step size
     if truncated:
         T = math.ceil( max( 64*d*(N**2)*sigma / (eps**2) * math.log(2/delta),
@@ -60,6 +57,11 @@ def GradientSolver(F,params,truncated=True):
         # M = np.inf
         # eta = N / sigma * np.sqrt(d / T)
     # print(T,eta,M)
+    
+    # Check stopping criterion every 1000 iterations
+    interval = RequiredSamples(delta/4,eps/5/np.sqrt(d)/(N**0.93)*30,params)
+    # interval = int(1e2 / d / eta)
+    # print(interval, eta)
     
     # Start timing
     start_time = time.time()
@@ -89,7 +91,7 @@ def GradientSolver(F,params,truncated=True):
         #     print("Truncated!")
         
         # Update and project the current point
-        x = x - 150 * d / int(t/interval+1) * eta * sub_grad
+        x = x - 150 * 6 / int(t/interval+1) * eta * sub_grad
         x = np.clip(x,1,N)
         
         # Update the moving average
@@ -112,7 +114,7 @@ def GradientSolver(F,params,truncated=True):
         if t % interval == interval - 1 and t >= 0 * interval:
             # print(cnt,f_new,f_old,total_samples)
             # Decay is not sufficient
-            if f_new - f_old >= -eps / np.sqrt(N):
+            if f_new - f_old >= -eps / np.sqrt(N) / 2:
                 cnt += 1
             else:
                 cnt = 0
