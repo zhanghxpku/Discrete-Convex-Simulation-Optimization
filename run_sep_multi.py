@@ -22,16 +22,17 @@ params = {}
 
 # Generate the model
 # Dimension and scale
-# params["d"] = 50
-params["d"] = int(sys.argv[1])
-# params["N"] = 30
-params["N"] = int(sys.argv[2])
+params["d"] = 15
+# params["d"] = int(sys.argv[1])
+params["N"] = 5000
+# params["N"] = int(sys.argv[2])
 # sub-Gaussian parameter
 params["sigma"] = 1e0
 
 # Optimality criteria
 params["eps"] = (math.factorial(params["d"]))**(1/params["d"]) / 5\
                     if params["d"] < 60 else params["d"] / math.exp(1) / 5
+params["eps"] = 1 * params["d"]
 # params["eps"] = math.sqrt(4/3) - 1
 params["delta"] = 1e-6
 
@@ -41,12 +42,12 @@ gaps = np.zeros((4,))
 rate = np.zeros((4,))
 
 # Open the output file
-f_out = open("./results/sep_multi_or_" + str(params["d"]) + "_"\
+f_out = open("./results/sep_multi_ms_" + str(params["d"]) + "_"\
               + str(params["N"]) + ".txt", "w")
 
-for t in range(100):
+for t in range(1):
     print(t)
-    model = models.separable_model.SeparableModel(params)
+    model = models.separable_model.SeparableModelNew(params)
     
     # Lipschitz constant and closed-form objective function
     if "L" in model:
@@ -88,24 +89,29 @@ for t in range(100):
     f_opt = model["f"](model["x_opt"])
     
     # # Use truncated subgradient descent method
-    output_grad = solvers.gradient_solver.GradientSolver(model["F"],params)
-    print(output_grad)
-    print(model["f"](output_grad["x_opt"]), params["eps"], output_grad["total"] / params["N"]**2 / params["d"]**2 * params["eps"]**2)
+    # output_grad = solvers.gradient_solver.GradientMSSolver(model["F"],params)
+    # print(output_grad)
+    # # print(model["f"](output_grad["x_opt"]), params["eps"], output_grad["total"] / params["N"]**2 / params["d"]**2 * params["eps"]**2)
+    # print(model["f"](output_grad["x_opt"]), params["eps"])
     # # Use Vaidya's cutting-plane method
     # output_vai = solvers.vaidya_solver.VaidyaSolver(model["F"],params)
     # print(output_vai)
+    # print(model["f"](output_vai["x_opt"]), params["eps"])
     # # Use cutting-plane method based on random walk
     # output_random = solvers.random_walk_solver.RandomWalkSolver(model["F"],params)
-    # print(output_random["total"])
-    # # Use dimension reduction method
-    # output_reduction = solvers.dim_reduction_solver.DimensionReductionSolver(model["F"],params)
-    # print(output_reduction)
-    output_vai = output_grad
+    # print(output_random)
+    # print(model["f"](output_random["x_opt"]), params["eps"])
+    # Use dimension reduction method
+    output_reduction = solvers.dim_reduction_solver.DimensionReductionSolver(model["F"],params)
+    print(output_reduction)
+    print(model["f"](output_reduction["x_opt"]), params["eps"])
+    # output_vai = output_grad
     # output_grad = output_vai
+    # output_random = output_vai
+    # output_reduction = output_random
+    output_vai = output_reduction
+    output_grad = output_vai
     output_random = output_vai
-    output_reduction = output_random
-    # output_vai = output_reduction
-    # output_grad = output_vai
     
     # Update records
     total_samples[0] = ( total_samples[0] * t + output_grad["total"] ) / (t+1)

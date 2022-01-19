@@ -15,10 +15,13 @@ from utils.lll import LLL
 from utils.subgaussian import RequiredSamples
 from .random_walk_solver import RandomWalk, RandomProjWalk
 from .uniform_solver import UniformSolver
+from .adaptive_solver import AdaptiveSolver
 from hsnf import column_style_hermite_normal_form
 
 import gurobipy as gp
 from gurobipy import GRB
+
+cst = 16
 
 def DimensionReductionSolver(F,params):
     """
@@ -42,7 +45,8 @@ def DimensionReductionSolver(F,params):
     # Record points where SO is called and their empirical means
     S = np.zeros((d+1,0))
     # Simulation cost of each separation oracle
-    so_samples = RequiredSamples(delta/4,eps/8/np.sqrt(d),params)
+    so_samples = RequiredSamples(delta/4,eps*cst/2/np.sqrt(d),params)
+    print(so_samples)
     
     # The current dimension
     d_cur = d
@@ -57,7 +61,7 @@ def DimensionReductionSolver(F,params):
     A = np.zeros((0,d))
     b = np.zeros((0,1))
     # The initial uniform distribution in P
-    y_set = np.random.uniform(1,N,(d,math.ceil(50 * 20 * d * math.log(d+1) * max( 20, math.log(d) ))))
+    y_set = np.random.uniform(1,N,(d,math.ceil(200 * 20 * d * math.log(d+1) * max( 20, math.log(d) ))))
     # The initial ellipsoid
     # C_inv = (N-1)**(-2) * 12 * np.eye(d) # A in paper
     C = (N-1)**2 / 12 * np.eye(d) # A_inv in paper
@@ -69,7 +73,7 @@ def DimensionReductionSolver(F,params):
     # Iteratively solve d_cur-dimensional problems
     while d_cur > 1:
         
-        # print(d_cur)
+        print(d_cur)
         # The current basis
         L_cur = np.copy(L[d-d_cur:,:])
         
@@ -91,7 +95,7 @@ def DimensionReductionSolver(F,params):
             total_samples += so_samples*(2*d)
             # Update set S
             S = np.concatenate((S,s),axis=1)
-            # print(s[-1,0])
+            # print("values",np.mean(s[-5:,0]))
             # print(K)
 
             # The LLL algorithm
@@ -104,8 +108,8 @@ def DimensionReductionSolver(F,params):
             # print(norm)
 
             # Stopping criterion
-            if np.min(norm) < 1e0 / d**2:
-            # if np.min(norm) < 300:
+            # if np.min(norm) < 10e1 / d**2:
+            if np.min(norm) < 1000:
                 i_short = np.argmin( norm )
                 L_cur[0,:] = basis[i_short,:]
                 # basis[[0,i_short],:] = basis[[i_short,0],:]
@@ -291,13 +295,16 @@ def DimensionReductionSolver(F,params):
             params_new["N"] = M
             params_new["d"] = 1
             # params_new["eps"] = eps / 4
-            params_new["eps"] = eps
+            params_new["eps"] = eps * 4
             params_new["delta"] = delta / 4
             # print(params_new)
             # Use the uniform solver to solve the one-dim problem
-            output_uniform = UniformSolver(G, params_new)
+            # output_uniform = UniformSolver(G, params_new)
+            output_uniform = AdaptiveSolver(G, params_new)
             # Update the total number of points
+            print(total_samples)
             total_samples += output_uniform["total"]
+            print(total_samples)
             # print(params_new)
             # Optimal point
             x_uni = z + output_uniform["x_opt"] * v
@@ -367,7 +374,7 @@ def RandomWalkApproximator(F,Y,y_in,A_in,b_in,params,centroid=False):
     # print(y_bar,Y)
     
     # Generate the uniform distribution in P
-    M = math.ceil(50 * 20 * d * math.log(d+1) * max( 20, math.log(d) ))
+    M = math.ceil(2 * 20 * d * math.log(d+1) * max( 20, math.log(d) ))
     y_set = RandomWalk(y_set,Y,A,b,params,M)
     # Approximate centroid
     y_bar = np.mean(y_set,axis=1,keepdims=True)
@@ -391,7 +398,7 @@ def RandomWalkApproximator(F,Y,y_in,A_in,b_in,params,centroid=False):
     while True:
 
         # Separation oracle
-        so = SO(F,y_bar[:,0],eps/4*min(N,N/4),delta/4,params)
+        so = SO(F,y_bar[:,0],eps*cst*min(N,N),delta/4,params)
         c = -so["hat_grad"]
         hat_F = so["hat_F"]
         s = np.concatenate((y_bar,[[hat_F]]),axis=0)
@@ -403,7 +410,8 @@ def RandomWalkApproximator(F,Y,y_in,A_in,b_in,params,centroid=False):
         
         # Warm-start distribution
         # print(A.shape,y_set.shape,b.shape)
-        violation = np.min(A @ y_set - b, axis=0)
+        # violation = np.min(A @ y_set - b, axis=0)
+        violation = np.min(A[-1:,:] @ y_set - b[-1:,:], axis=0)
         y_set = y_set[:,violation >= 0]
         
         # Infeasible
@@ -426,25 +434,27 @@ def RandomWalkApproximator(F,Y,y_in,A_in,b_in,params,centroid=False):
         
         # Update uniform distribution in P
         # print("start")
-        M = math.ceil(5 * 20 * d * math.log(d+1) * max( 20, math.log(d) ))
+        # M = math.ceil(1 * 20 * d * math.log(d+1) * max( 20, math.log(d) ))
         y_set = RandomWalk(y_set,Y,A,b,params,M)
         # print("end")
 
         # Approximate centroid and covariance
-        M = int(y_set.shape[1] / 2)
-        y_bar = np.mean(y_set[:,:M],axis=1,keepdims=True)
-        temp = y_set[:,:M] - y_bar
+        M_new = int(y_set.shape[1] / 2)
+        y_set = y_set[:,np.random.permutation(np.arange(y_set.shape[1]))]
+        # M_new = M
+        y_bar = np.mean(y_set[:,:M_new],axis=1,keepdims=True)
+        temp = y_set[:,:M_new] - y_bar
         Y = np.zeros((d,d))
-        for i in range(M):
+        for i in range(M_new):
             Y += ( temp[:,i:i+1] @ temp[:,i:i+1].T )
-        Y /= M
+        Y /= M_new
         # Remove negative eigenvalues
         u = min( np.min(np.linalg.eigvalsh(Y)), 0)
         # print(np.min(np.linalg.eigvalsh(Y)), u)
         Y -= u * np.eye(d)
         
         # Update point set
-        y_set = y_set[:,M:]
+        y_set = y_set[:,M_new:]
         # print(y_bar, Y)
         
         # Output

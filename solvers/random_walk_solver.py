@@ -42,7 +42,7 @@ def RandomWalkSolver(F,params):
     total_samples = 0
     
     # Number of points to approximate covariance (N in the paper)
-    M = math.ceil(50 * 20 * d * math.log(d+1) * max( 20, math.log(d) ))
+    M = math.ceil(20 * 20 * d * math.log(d+1) * max( 20, math.log(d) ))
     # # Number of steps to approximate the uniform measure in P
     # K = math.ceil(d**3 * 2e3)
     
@@ -53,12 +53,14 @@ def RandomWalkSolver(F,params):
     z = (N+1)/2 * np.ones((d,))
     # Initial uniform distribution
     y_set = np.random.uniform(1,N,(d,M))
+    # Early stopping
+    cnt = 0
     
     for t in range(T):
         
         # Separation oracle
         # print(z)
-        so = SO(F,z,eps/8*min(N,N),delta/4,params)
+        so = SO(F,z,eps/2*min(N,N/1*2**t),delta/4,params)
         c = -so["hat_grad"]
         # print(c)
         # c = - np.ones((d,))
@@ -103,12 +105,26 @@ def RandomWalkSolver(F,params):
         z = np.mean(y_set[:,:M],axis=1)
         y_set = y_set[:,M:]
         
+        # # Early stopping
+        # F_new = np.mean(S[-3:,-1])
+        # print(F_new,F_old)
+        # if F_new >= F_old - 2*eps / d:
+        #     break
+        # else:
+        #     F_old = F_new
+        
         # Early stopping
-        F_new = np.mean(S[-3:,-1])
-        if F_new >= F_old - 2*eps / d / np.sqrt(N):
-            break
+        F_new = np.mean(S[-5:,-1])
+        print(cnt,F_new,F_old)
+        if F_new >= F_old - eps / d:
+            cnt += 1
         else:
-            F_old = F_new
+            cnt = 0
+            F_old = min(F_new, F_old)
+        if t >= 10 and cnt > 6:
+            break
+        # else:
+        #     F_old = min(F_new, F_old)
     
     # Find the point with minimial empirical mean
     i = np.argmin(S[:,-1])
@@ -138,11 +154,13 @@ def RandomWalk(y_set,Y,A,b,params,M=None):
     K = math.ceil(d**3 * 2e3)
     # print(K)
     # K = 4000
+    K = 10
     m = y_set.shape[1]
     # Square root of covariance matrix
     U = np.real(sp.linalg.sqrtm(Y))
     # print(np.linalg.eigvalsh(Y))
     # print(U[:3,:3])
+    assert np.linalg.norm(U@U.T - Y) < 1e-5
     
     while y_set.shape[1] < 2*M + m:
         # print(y_set.shape[1],2*M+m)
@@ -192,7 +210,7 @@ def RandomWalk(y_set,Y,A,b,params,M=None):
                 # Update
                 block[ind[ valid ]] = 1
                 y_update[:,ind[valid]] = temp[:,valid]
-            break
+            # break
         
         # Update the set of points
         y_set = np.concatenate((y_set,y_update),axis=1)

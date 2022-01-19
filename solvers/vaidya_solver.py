@@ -52,15 +52,18 @@ def VaidyaSolver(F,params):
     z = (N+1)/2 * np.ones((d,))
     # Initial Hessian
     H_inv,alpha,_,_ = Auxiliary(z,A,b)
+    # Early stopping
+    cnt = 0
     
     for t in range(T):
-        
+        # print(A.shape, alpha.shape, S.shape)
         # Case I
-        if np.min(alpha) >= q:
+        # if np.min(alpha) >= q:
+        if alpha.shape[0] <= 2*d or np.min(alpha[2*d:]) >= q:
             # Separation oracle
             # ti = time.time()
             # print(z)
-            so = SO(F,z,eps/8*min(N,2**t*N/4),delta/4,params)
+            so = SO(F,z,eps*2*min(N,2**t*N/4),delta/4,params)
             c = -so["hat_grad"]
             hat_F = so["hat_F"]
             # beta = np.sum(c*z) - math.sqrt( 2*(c.T @ H_inv) @ c\
@@ -95,15 +98,28 @@ def VaidyaSolver(F,params):
             H_inv,alpha,nabla,Q = Auxiliary(z,A,b)
             # print(z)
             
+            # Early stopping
+            F_new = np.mean(S[-5:,-1])
+            print(cnt,F_new,F_old)
+            if F_new >= F_old - eps / d:
+                cnt += 1
+            else:
+                cnt = 0
+            if t >= 5 and cnt > 5:
+                break
+            else:
+                F_old = min(F_new, F_old)
+            
         # Case II
         else:
             # Find the cutting-plane to be removed
-            i = np.argmin(alpha)
+            # i = np.argmin(alpha)
+            i = np.argmin(alpha[2*d:]) + 2*d
             
             # Update A, b, S
             A = np.delete(A,i,axis=0)
             b = np.delete(b,i,axis=0)
-            S = np.delete(S,i,axis=0)
+            S = np.delete(S,i-2*d,axis=0)
             
             # Update volumetric center
             # Number of Newton steps
@@ -115,12 +131,7 @@ def VaidyaSolver(F,params):
             # Update matrices
             H_inv,alpha,nabla,Q = Auxiliary(z,A,b)
         
-        # Early stopping
-        F_new = np.mean(S[-3:,-1])
-        if t >= 3 and F_new >= F_old - 2*eps / d / np.sqrt(N):
-            break
-        else:
-            F_old = F_new
+        
     
     # Find the point with minimial empirical mean
     i = np.argmin(S[:,-1])
