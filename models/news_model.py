@@ -9,7 +9,7 @@ Generate news vendor with dynamic consumer substitution examples.
 import numpy as np
 
 
-def newsmodel(params):
+def news_model(params):
     """
     Generate the objective function
     """

@@ -10,7 +10,7 @@ import numpy as np
 from scipy import stats
 
 
-def busmodel(params):
+def bus_model(params):
     """
     Generate the objective function
     """
@@ -24,12 +24,12 @@ def busmodel(params):
     # The optimal solution
     x_opt = np.linspace(tau / (d + 1), tau * d / (d + 1), d) + 1
 
-    return {"F": lambda y: waitingtime(y, params, False),
-            "f": lambda y: waitingtime(y, params, True),
+    return {"F": lambda y: waiting_time(y, params, False),
+            "f": lambda y: waiting_time(y, params, True),
             "L": lam * tau, "x_opt": x_opt}
 
 
-def waitingtime(x, params, expectation=False):
+def waiting_time(x, params, expectation=False):
     """
     Compute the waiting time
     """

@@ -58,7 +58,7 @@ f_out = open("./results/queue_uncons_" + str(params["N"]) + "_"  + str(params["d
 
 for t in range(1):
     print(t)
-    model = models.queueing_or_model.queueregmodel24hr(params)
+    model = models.queueing_or_model.queuereg_model_24hr(params)
     
     f_out.write(str(t))
     f_out.write("\n")

@@ -44,7 +44,7 @@ for N in range(70,160,10):
     
     for t in range(400):
         print(t)
-        model = models.separable_model.separablemodel(params)
+        model = models.separable_model.separable_model(params)
         
         # Lipschitz constant and closed-form objective function
         if "L" in model:

@@ -10,7 +10,7 @@ import numpy as np
 from scipy import stats
 
 
-def queuemodel24hr(params):
+def queue_model_24hr(params):
     """
     Generate the objective function
     """
@@ -23,10 +23,10 @@ def queuemodel24hr(params):
     loc = mean - np.exp(s ** 2 / 2)
     service = lambda size: stats.lognorm.rvs(s, loc=loc, size=size)
 
-    return {"F": lambda y: waitingtime(y, service, params)}
+    return {"F": lambda y: waiting_time(y, service, params)}
 
 
-def queueregmodel24hr(params):
+def queuereg_model_24hr(params):
     """
     Generate the objective function with a regularization
     """
@@ -41,10 +41,10 @@ def queueregmodel24hr(params):
     loc = mean - np.exp(s ** 2 / 2)
     service = lambda size: stats.lognorm.rvs(s, loc=loc, size=size)
 
-    return {"F": lambda y: (waitingtime(y, service, params) + c * y[-1])}
+    return {"F": lambda y: (waiting_time(y, service, params) + c * y[-1])}
 
 
-def waitingtime(y, service, params):
+def waiting_time(y, service, params):
     """
     Compute the waiting time of the queue
     """
@@ -67,12 +67,12 @@ def waitingtime(y, service, params):
     x[1:] = np.diff(y)
 
     # The total waiting time
-    t1, n1 = singlequeue(x, lambda_1, max_1, service, params)
+    t1, n1 = single_queue(x, lambda_1, max_1, service, params)
 
     return t1
 
 
-def singlequeue(x, intensity, max_rate, service_t, params):
+def single_queue(x, intensity, max_rate, service_t, params):
     """
      Compute the waiting time of the queue
     """

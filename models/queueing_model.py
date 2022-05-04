@@ -10,7 +10,7 @@ import numpy as np
 from scipy import stats
 
 
-def queuemodel(params):
+def queue_model(params):
     """
     Generate the objective function
     """
@@ -28,10 +28,10 @@ def queuemodel(params):
     service_2 = lambda size: stats.gamma.rvs(a, scale=scale, size=size)
     service = (service_1, service_2)
 
-    return {"F": lambda x: waitingtime(x, service, params)}
+    return {"F": lambda x: waiting_time(x, service, params)}
 
 
-def waitingtime(x, service, params):
+def waiting_time(x, service, params):
     """
     Compute the waiting time of two queues
     """
@@ -55,13 +55,13 @@ def waitingtime(x, service, params):
     max_2 = 120 * Gamma_2
 
     # The total waiting time
-    t1, n1 = singlequeue(x[0], lambda_1, max_1, service[0], params)
-    t2, n2 = singlequeue(N + 1 - x[0], lambda_2, max_2, service[1], params)
+    t1, n1 = single_queue(x[0], lambda_1, max_1, service[0], params)
+    t2, n2 = single_queue(N + 1 - x[0], lambda_2, max_2, service[1], params)
 
     return (t1 + t2) / (n1 + n2)
 
 
-def singlequeue(num_server, intensity, max_rate, service_t, params):
+def single_queue(num_server, intensity, max_rate, service_t, params):
     """
      Compute the waiting time of a single queue
     """

@@ -22,8 +22,6 @@ params["d"] = 4
 params["N"] = 99
 
 # Optimality criteria
-# params["eps"] = math.log(params["d"]+1,2) / 5
-# params["eps"] = math.log(params["d"]+1,2)*params["N"]**0.5 / 80
 params["eps"] = 5e4 / (params["d"] + 1)
 # params["eps"] = 1e0
 params["delta"] = 1e-6

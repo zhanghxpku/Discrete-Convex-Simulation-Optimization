@@ -10,7 +10,7 @@ Generate quadratic L-convex examples.
 import numpy as np
 
 
-def quadraticmodel(params):
+def quadratic_model(params):
     # Retrieve parameters
     d = params["d"] if "d" in params else 1
     N = params["N"] if "N" in params else 2

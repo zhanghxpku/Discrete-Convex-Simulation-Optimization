@@ -11,7 +11,7 @@ import math
 import numpy as np
 
 
-def onedimfunction(x_0, x_opt, x_1, x_2, params, deg=0.5):
+def one_dim_function(x_0, x_opt, x_1, x_2, params, deg=0.5):
     x = np.array(x_0)
     if len(x.shape) == 1:
         return np.sum(((x < x_opt) * x_1 / x ** deg + (x >= x_opt) * x_2 / (params["N"] + 1 - x) ** deg))
@@ -22,7 +22,7 @@ def onedimfunction(x_0, x_opt, x_1, x_2, params, deg=0.5):
                       , axis=0)
 
 
-def separablemodel(params):
+def separable_model(params):
     # Retrieve parameters
     d = params["d"] if "d" in params else 1
     N = params["N"] if "N" in params else 2
@@ -36,7 +36,7 @@ def separablemodel(params):
 
     x_1 = coef * (x_opt ** deg)
     x_2 = coef * ((N + 1 - x_opt) ** deg)
-    f = lambda x: onedimfunction(x, x_opt, x_1, x_2, params, deg) - np.sum(coef)
+    f = lambda x: one_dim_function(x, x_opt, x_1, x_2, params, deg) - np.sum(coef)
 
     # F = lambda x: f(x) + sigma * np.random.randn((np.array(x).shape[-1]) \
     #                                              ** (len(np.array(x).shape) - 1))
@@ -51,7 +51,7 @@ def separablemodel(params):
     return ret
 
 
-def onedimfunctionnew(x_0, x_opt, x_1, x_2, params, deg=1.0):
+def one_dim_function_new(x_0, x_opt, x_1, x_2, params, deg=1.0):
     x = np.array(x_0)
     if len(x.shape) == 1:
         return np.sum(((x < x_opt) * x_1 * np.abs(x_opt - x) ** deg
@@ -63,7 +63,7 @@ def onedimfunctionnew(x_0, x_opt, x_1, x_2, params, deg=1.0):
                       , axis=0)
 
 
-def separablemodelnew(params):
+def separable_model_new(params):
     # Retrieve parameters
     d = params["d"] if "d" in params else 1
     N = params["N"] if "N" in params else 2
@@ -77,7 +77,7 @@ def separablemodelnew(params):
 
     x_1 = coef
     x_2 = coef
-    f = lambda x: onedimfunctionnew(x, x_opt, x_1, x_2, params, deg)
+    f = lambda x: one_dim_function_new(x, x_opt, x_1, x_2, params, deg)
 
     F = lambda x: f(x) + sigma * np.random.randn((np.array(x).shape[-1]) \
                                                  ** (len(np.array(x).shape) - 1))
@@ -92,7 +92,7 @@ def separablemodelnew(params):
     return ret
 
 
-def separablemodelor(params):
+def separable_model_or(params):
     # Retrieve parameters
     d = params["d"] if "d" in params else 1
     N = params["N"] if "N" in params else 2
@@ -104,7 +104,7 @@ def separablemodelor(params):
 
     x_1 = coef * (x_opt ** 0.5)
     x_2 = coef * ((N + 1 - x_opt) ** 0.5)
-    f = lambda x: onedimfunction(x, x_opt, x_1, x_2, params) / d - np.mean(coef)
+    f = lambda x: one_dim_function(x, x_opt, x_1, x_2, params) / d - np.mean(coef)
     F = lambda x: f(x) + sigma * np.random.randn((np.array(x).shape[-1]) \
                                                  ** (len(np.array(x).shape) - 1))
     F_hat = lambda x, n=1: f(x) + sigma / math.sqrt(n) \
