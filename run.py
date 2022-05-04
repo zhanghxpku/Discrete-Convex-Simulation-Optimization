@@ -105,15 +105,3 @@ print(avg)
 # # Use dimension reduction method
 # output_reduction = solvers.dim_reduction_solver.DimensionReductionSolver(model["F"],params)
 # print(output_reduction)
-
-
-
-
-
-
-
-
-
-
-
-
