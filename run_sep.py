@@ -41,7 +41,7 @@ f_out = open("./results/sep_" + str(params["N"]) + ".txt", "w")
 
 for t in range(1):
     print(t)
-    model = models.separable_model.SeparableModel(params)
+    model = models.separable_model.separablemodel(params)
     
     f_out.write(str(t))
     f_out.write("\n")

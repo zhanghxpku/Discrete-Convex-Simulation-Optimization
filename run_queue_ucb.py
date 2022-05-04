@@ -41,7 +41,7 @@ f_out = open("./results/queue_ucb_" + str(params["N"]) + ".txt", "w")
 
 for t in range(100):
     print(t)
-    model = models.queueing_model.QueueModel(params)
+    model = models.queueing_model.queuemodel(params)
     
     f_out.write(str(t))
     f_out.write("\n")

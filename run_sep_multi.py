@@ -47,7 +47,7 @@ f_out = open("./results/sep_multi_ms_" + str(params["d"]) + "_"\
 
 for t in range(1):
     print(t)
-    model = models.separable_model.SeparableModelNew(params)
+    model = models.separable_model.separablemodelnew(params)
     
     # Lipschitz constant and closed-form objective function
     if "L" in model:

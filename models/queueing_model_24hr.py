@@ -8,87 +8,88 @@ Generate one queue for 24-hours.
 
 import numpy as np
 from scipy import stats
-# import matplotlib.pyplot as plt
-import time
 
-def QueueORModel(params):
+
+def queuemodel24hr(params):
     """
     Generate the objective function
     """
-    
+
     # Service time
     mean = 0.25
     var = 0.1
     # Compute the parameters of log-normal dist
-    s = np.sqrt(np.log( (1 + np.sqrt(1 + 4*var)) / 2))
-    loc = mean - np.exp(s**2/2)
-    service = lambda size: stats.lognorm.rvs(s,loc=loc,size=size)
-    
-    return {"F": lambda y: WaitingTime(y,service,params)}
+    s = np.sqrt(np.log((1 + np.sqrt(1 + 4 * var)) / 2))
+    loc = mean - np.exp(s ** 2 / 2)
+    service = lambda size: stats.lognorm.rvs(s, loc=loc, size=size)
 
-def QueueRegORModel(params):
+    return {"F": lambda y: waitingtime(y, service, params)}
+
+
+def queueregmodel24hr(params):
     """
     Generate the objective function with a regularization
     """
-    
+
     # Regularizer
     c = params["c"] if "c" in params else 0
     # Service time
     mean = 0.25
     var = 0.1
     # Compute the parameters of log-normal dist
-    s = np.sqrt(np.log( (1 + np.sqrt(1 + 4*var)) / 2))
-    loc = mean - np.exp(s**2/2)
-    service = lambda size: stats.lognorm.rvs(s,loc=loc,size=size)
-    
-    return {"F": lambda y: (WaitingTime(y,service,params) + c * y[-1] )}
+    s = np.sqrt(np.log((1 + np.sqrt(1 + 4 * var)) / 2))
+    loc = mean - np.exp(s ** 2 / 2)
+    service = lambda size: stats.lognorm.rvs(s, loc=loc, size=size)
 
-def WaitingTime(y,service,params):
+    return {"F": lambda y: (waitingtime(y, service, params) + c * y[-1])}
+
+
+def waitingtime(y, service, params):
     """
     Compute the waiting time of the queue
     """
-    
+
     # Retrieve parameters: max number of servers
     N = params["N"] if "N" in params else 2
     # Retrieve parameters: number of time slots
     d = params["d"] if "d" in params else 24
-    
+
     # Parameters
     # Gamma_1 = stats.uniform.rvs(0.75,0.5)
-    
     # Generate intensity functions (i-th hour)
-    lambda_1 = lambda t: 0.5 * N * ( 1 - np.abs( t - 12 ) / 12 )
-    
+    lambda_1 = lambda t: 0.5 * N * (1 - np.abs(t - 12) / 12)
+
     # Maximal rates
     max_1 = lambda_1(12)
     # Linear transform
     x = np.zeros((d,))
     x[0] = y[0]
     x[1:] = np.diff(y)
-    
+
     # The total waiting time
-    t1, n1 = SingleQueue(x,lambda_1,max_1,service,params)
-    
+    t1, n1 = singlequeue(x, lambda_1, max_1, service, params)
+
     return t1
 
-def SingleQueue(x,intensity,max_rate,service_t,params):
+
+def singlequeue(x, intensity, max_rate, service_t, params):
     """
      Compute the waiting time of the queue
     """
-    
+
     # Retrieve parameters: max number of servers
     N = params["N"] if "N" in params else 2
     # Retrieve parameters: number of decisions in each period
     M = params["M"] if "M" in params else 24
     # Retrieve parameters
     T = params["T"] if "T" in params else 24 / M
-    
+
     # Number of arrivals
     n = stats.poisson.rvs(24 * max_rate)
     # Arrival times
-    t = stats.uniform.rvs(0,24,n)
-    # Thining
-    t = t[ stats.uniform.rvs(0,1,n) < intensity(t) / max_rate ]
+    t = stats.uniform.rvs(0, 24, n)
+    # Thinning
+    t = t[stats.uniform.rvs(0, 1, n) < intensity(t) / max_rate]
     # Sorting
     t = np.sort(t)
     # print(t.shape)
@@ -102,35 +103,31 @@ def SingleQueue(x,intensity,max_rate,service_t,params):
     finish_time = np.zeros((N,))
     # Current slot
     k = 0
-    # print(x,N)
     # Randomly choose x[k] servers to work
     active_ind = np.random.choice(np.arange(N), int(x[k]), False)
     finish_time_ac = finish_time[active_ind]
-    
-    # if np.min(x) == 0 or np.max(x) == N + 1:
-    # print(x)
-    
-    for j,i in enumerate(t):
+
+    for j, i in enumerate(t):
         # Find the earliest finishing time
         next_server = np.argmin(finish_time_ac)
         finish_min = finish_time_ac[next_server]
-        
+
         # Decide if we need to move to the next slot
-        while k < M - 1 and (finish_min >= (k+1) * T or i >= (k+1) * T):
+        while k < M - 1 and (finish_min >= (k + 1) * T or i >= (k + 1) * T):
             # Update the original array
             finish_time[active_ind] = finish_time_ac
             k += 1
             # Randomly choose x[k] servers to work
             active_ind = np.random.choice(np.arange(N), int(x[k]), False)
             finish_time_ac = finish_time[active_ind]
-        
+
             # Find the earliest finishing time
             next_server = np.argmin(finish_time_ac)
             finish_min = finish_time_ac[next_server]
-        
+
         # Update waiting time
         wait_time += max(finish_min - i, 0)
         # Update finishing time
-        finish_time_ac[next_server] = max(finish_min,i) + service_time[j]
+        finish_time_ac[next_server] = max(finish_min, i) + service_time[j]
 
     return wait_time, customer_num
