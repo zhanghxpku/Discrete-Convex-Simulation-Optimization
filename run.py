@@ -86,7 +86,7 @@ else:
 # print(output_ucb)
 
 # Use truncated subgradient descent method
-output_grad = solvers.random_walk_solver.RandomWalkSolver(model["F"],params)
+output_grad = solvers.random_walk_solver.random_walk_solver(model["F"], params)
 print(output_grad)
 avg = np.zeros((2,))
 max_iter = 1000

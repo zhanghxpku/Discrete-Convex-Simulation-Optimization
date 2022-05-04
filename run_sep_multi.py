@@ -102,7 +102,7 @@ for t in range(1):
     # print(output_random)
     # print(model["f"](output_random["x_opt"]), params["eps"])
     # Use dimension reduction method
-    output_reduction = solvers.dim_reduction_solver.DimensionReductionSolver(model["F"],params)
+    output_reduction = solvers.dim_reduction_solver.dimension_reduction_solver(model["F"], params)
     print(output_reduction)
     print(model["f"](output_reduction["x_opt"]), params["eps"])
     # output_vai = output_grad

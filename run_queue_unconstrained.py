@@ -107,9 +107,9 @@ for t in range(1):
     elif method == 2:
         output_grad = solvers.random_walk_solver.RandomWalkProjSolver(model["F"],params)
     elif method == 3:
-        output_grad = solvers.dim_reduction_solver.DimensionReductionProjSolver(model["F"],params)
+        output_grad = solvers.dim_reduction_solver.dimension_reduction_proj_solver(model["F"], params)
     elif method == 4:
-        output_grad = solvers.gps_solver.GPSSolver(model["F"],params)
+        output_grad = solvers.gps_solver.GPS_solver(model["F"], params)
     print(output_grad)
     
     # Update records

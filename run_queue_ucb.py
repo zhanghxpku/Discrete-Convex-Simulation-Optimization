@@ -81,7 +81,7 @@ for t in range(100):
     # output_uni = solvers.uniform_solver.UniformSolver(model["F"],params)
     # # print(output_uni)
     # Use lil'UCB algorithm
-    output_ucb = solvers.ucb_solver.LILUCBSolver(model["F"],params)
+    output_ucb = solvers.ucb_solver.lilucb_solver(model["F"], params)
     # print(output_ucb)
     
     # Update records

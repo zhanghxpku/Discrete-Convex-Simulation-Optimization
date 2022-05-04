@@ -85,10 +85,10 @@ for N in range(20,160,20):
         f_opt = model["f"](model["x_opt"])
         
         # Use adaptive sampling algorithm
-        output_ada = solvers.adaptive_solver.AdaptiveSolver(model["F"],params)
+        output_ada = solvers.adaptive_solver.adaptive_solver(model["F"], params)
         # print(output_ada)
         # Use uniform sampling algorithm
-        output_uni = solvers.uniform_solver.UniformSolver(model["F"],params)
+        output_uni = solvers.uniform_solver.uniform_solver(model["F"], params)
         # print(output_uni)
         
         # Update records
