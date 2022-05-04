@@ -10,7 +10,7 @@ Adaptive sampling algorithm for one-dim problems
 import math
 import numpy as np
 import time
-from utils.subgaussian import RequiredSamples, ConfidenceInterval
+from utils.subgaussian import required_samples, confidence_interval
 
 
 def adaptive_solver(F, params):
@@ -43,7 +43,7 @@ def adaptive_solver(F, params):
         N_2 = math.ceil(L / 3 + 2 * U / 3)
 
         # Upper bound on samples needed
-        num_samples = RequiredSamples(delta / 2 / T_max, eps / 8, params)
+        num_samples = required_samples(delta / 2 / T_max, eps / 8, params)
         # Empirical mean
         hat_F_1 = 0
         hat_F_2 = 0
@@ -54,7 +54,7 @@ def adaptive_solver(F, params):
             hat_F_2 = (hat_F_2 * i + F([N_2])) / (i + 1)
 
             # Check conditions
-            CI = ConfidenceInterval(delta / 2 / T_max, params, i + 1)
+            CI = confidence_interval(delta / 2 / T_max, params, i + 1)
 
             # Condition (i)
             if hat_F_1 - hat_F_2 > 2 * CI:
@@ -82,7 +82,7 @@ def adaptive_solver(F, params):
     # Solve the sub-problem
     hat_F = np.zeros((U - L + 1,))
     # Upper bound on samples needed
-    num_samples = RequiredSamples(delta / 2 / T_max, eps / 4, params)
+    num_samples = required_samples(delta / 2 / T_max, eps / 4, params)
     # Stop simulating if already too large
     blocked = np.zeros((U - L + 1,))
 
@@ -95,7 +95,7 @@ def adaptive_solver(F, params):
         total_samples += np.sum(1 - blocked)
 
         # Check confidence interval
-        CI = ConfidenceInterval(delta / 2 / T_max, params, i + 1)
+        CI = confidence_interval(delta / 2 / T_max, params, i + 1)
         # Block points with large empirical means
         blocked[hat_F - np.min(hat_F) > 2 * CI] = 1
         hat_F[hat_F - np.min(hat_F) > 2 * CI] = np.inf

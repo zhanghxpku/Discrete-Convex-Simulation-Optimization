@@ -11,7 +11,7 @@ import math
 import numpy as np
 import time
 from utils.lovasz import Lovasz, Round, RoundCons, LovaszCons
-from utils.subgaussian import RequiredSamples
+from utils.subgaussian import required_samples
 
 import gurobipy as gp
 from gurobipy import GRB
@@ -52,7 +52,7 @@ def gradient_solver(F, params, truncated=True):
         eta = N / M / np.sqrt(T)
 
     # Check stopping criterion every 1000 iterations
-    interval = RequiredSamples(delta / 4, eps / 5 / np.sqrt(d) / (N ** 0.93) * 30, params)
+    interval = required_samples(delta / 4, eps / 5 / np.sqrt(d) / (N ** 0.93) * 30, params)
 
     # Start timing
     start_time = time.time()
@@ -149,7 +149,7 @@ def gradient_solver_ms(F, params, truncated=True):
         eta = N / M / np.sqrt(T)
 
     # Check stopping criterion every 1000 iterations
-    interval = int(RequiredSamples(delta / 4, eps / 16 / np.sqrt(d), params) * 1e-1)
+    interval = int(required_samples(delta / 4, eps / 16 / np.sqrt(d), params) * 1e-1)
 
     # Start timing
     start_time = time.time()
@@ -236,7 +236,7 @@ def gradient_proj_solver(F, params, truncated=True):
     x_avg = np.copy(x)
 
     # Check stopping criterion every 1000 iterations
-    interval = int(RequiredSamples(delta / 4, eps / 16 / np.sqrt(d), params) * 1e-1)
+    interval = int(required_samples(delta / 4, eps / 16 / np.sqrt(d), params) * 1e-1)
 
     if truncated:
         T = math.ceil(max(64 * d * (N ** 2) * sigma / (eps ** 2) * math.log(2 / delta),

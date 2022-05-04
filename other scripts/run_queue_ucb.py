@@ -88,9 +88,9 @@ for t in range(100):
     total_samples[0] = ( total_samples[0] * t + output_ucb["total"] ) / (t+1)
     
     # Get the optimal value
-    num_samples = utils.subgaussian.RequiredSamples(params["delta"],
-                                                    params["eps"],
-                                                    params)
+    num_samples = utils.subgaussian.required_samples(params["delta"],
+                                                     params["eps"],
+                                                     params)
     y = np.zeros((2,))
     for i in range(int(num_samples/100)):
         y[0] = ( y[0] * i + model["F"]([output_ucb["x_opt"]]) ) / (i+1)

@@ -12,7 +12,7 @@ import numpy as np
 import time
 from utils.lovasz import Round, SO, RoundCons, SOCons
 from utils.lll import LLL
-from utils.subgaussian import RequiredSamples
+from utils.subgaussian import required_samples
 from .random_walk_solver import random_walk, random_proj_walk
 from .uniform_solver import uniform_solver
 from .adaptive_solver import adaptive_solver
@@ -46,7 +46,7 @@ def dimension_reduction_solver(F, params):
     # Record points where SO is called and their empirical means
     S = np.zeros((d + 1, 0))
     # Simulation cost of each separation oracle
-    so_samples = RequiredSamples(delta / 4, eps * cst / 2 / np.sqrt(d), params)
+    so_samples = required_samples(delta / 4, eps * cst / 2 / np.sqrt(d), params)
     print(so_samples)
 
     # The current dimension
@@ -264,7 +264,7 @@ def dimension_reduction_solver(F, params):
             x_uni = z + output_uniform["x_opt"] * v
 
             # Estimate the empirical mean of x_opt
-            num_samples = RequiredSamples(delta / 2, eps / 4, params)
+            num_samples = required_samples(delta / 2, eps / 4, params)
             hat_F = 0
             for i in range(num_samples):
                 hat_F = hat_F + float(F(x_uni))
@@ -408,7 +408,7 @@ def dimension_reduction_proj_solver(F, params):
     # Record points where SO is called and their empirical means
     S = np.zeros((d + 1, 0))
     # Simulation cost of each separation oracle
-    so_samples = RequiredSamples(delta / 4, eps / 8 / np.sqrt(d) * params["eta"], params)
+    so_samples = required_samples(delta / 4, eps / 8 / np.sqrt(d) * params["eta"], params)
 
     # The current dimension
     d_cur = d
@@ -653,7 +653,7 @@ def dimension_reduction_proj_solver(F, params):
             x_uni = z + output_uniform["x_opt"] * v
 
             # Estimate the empirical mean of x_opt
-            num_samples = RequiredSamples(delta / 2, eps / 4, params)
+            num_samples = required_samples(delta / 2, eps / 4, params)
             hat_F = 0
             for i in range(num_samples):
                 hat_F = hat_F + float(F(x_uni))

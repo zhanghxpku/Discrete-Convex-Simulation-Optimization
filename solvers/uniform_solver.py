@@ -11,7 +11,7 @@ import math
 import numpy as np
 import time
 import copy
-from utils.subgaussian import RequiredSamples, ConfidenceInterval
+from utils.subgaussian import required_samples, confidence_interval
 
 
 def uniform_solver(F, params):
@@ -45,8 +45,8 @@ def uniform_solver(F, params):
     while S.shape[0] > 5:
 
         # Upper bound on samples needed
-        num_samples = RequiredSamples(delta / 2 / T_max, S.shape[0] * eps / 20,
-                                      params)
+        num_samples = required_samples(delta / 2 / T_max, S.shape[0] * eps / 20,
+                                       params)
         # print(cur_samples,num_samples)
         # Simulation
         for i in range(num_samples - cur_samples):
@@ -55,7 +55,7 @@ def uniform_solver(F, params):
                            / (cur_samples + i + 1)
 
             # Check conditions
-            CI = ConfidenceInterval(delta / 2 / T_max, params, cur_samples + i + 1)
+            CI = confidence_interval(delta / 2 / T_max, params, cur_samples + i + 1)
 
             # Condition (i)
             if np.max(hat_F) - np.min(hat_F) > 2 * CI:
@@ -110,7 +110,7 @@ def uniform_solver(F, params):
         # Number of points
         num = S.shape[0]
         # Upper bound on samples needed
-        num_samples = RequiredSamples(delta / 2 / T_max, eps / 4, params)
+        num_samples = required_samples(delta / 2 / T_max, eps / 4, params)
         # Stop simulating if already too large
         blocked = np.zeros((num,))
 
@@ -124,7 +124,7 @@ def uniform_solver(F, params):
             total_samples += np.sum(1 - blocked)
 
             # Check confidence interval
-            CI = ConfidenceInterval(delta / 2 / T_max, params, cur_samples + i + 1)
+            CI = confidence_interval(delta / 2 / T_max, params, cur_samples + i + 1)
             # Block points with large empirical means
             blocked[hat_F - np.min(hat_F) > 2 * CI] = 1
             hat_F[hat_F - np.min(hat_F) > 2 * CI] = np.inf
