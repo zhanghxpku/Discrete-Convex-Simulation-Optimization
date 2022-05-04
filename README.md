@@ -23,3 +23,10 @@
 - Dimension reduction method
 - Multi-dim uniform sampling algorithm
 - Gaussian Process-based Search (GPS) method
+
+## Required packages
+
+- numpy
+- scipy
+- gurobipy
+- hsnf
