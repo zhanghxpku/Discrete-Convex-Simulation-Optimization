@@ -34,4 +34,4 @@
 ## References
 
 - Zhang, H., Zheng, Z. and Lavaei, J., 2022. Gradient-Based Algorithms for Convex Discrete Optimization via Simulation. Operations Research.
-- Zhang, H., Zheng, Z. and Lavaei, J., 2020. Stochastic Localization Methods for Discrete Convex Simulation Optimization. arXiv preprint arXiv:2012.02427.
+- Zhang, H., Zheng, Z. and Lavaei, J., 2020. Stochastic Localization Methods for Convex Discrete Optimization via Simulation. arXiv preprint arXiv:2012.02427.
