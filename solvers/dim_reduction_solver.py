@@ -10,6 +10,7 @@ Dimension reduction method
 import math
 import numpy as np
 import time
+import utils
 from utils.lovasz import Round, SO, RoundCons, SOCons
 from utils.lll import LLL
 from utils.subgaussian import required_samples
@@ -17,6 +18,9 @@ from .random_walk_solver import random_walk, random_proj_walk
 from .uniform_solver import uniform_solver
 from .adaptive_solver import adaptive_solver
 from hsnf import column_style_hermite_normal_form
+
+import importlib
+importlib.reload(utils)
 
 import gurobipy as gp
 from gurobipy import GRB
@@ -454,7 +458,7 @@ def dimension_reduction_proj_solver(F, params):
 
         # Iterate until we find a short basis vector
         # Use random walk method
-        for K, z_new, A_new, b_new, y_new, s in random_walk_proj_approximator(F,
+        for K, z_new, A_new, b_new, y_new, s, total in random_walk_proj_approximator(F,
                                                                               C, y_set, A,
                                                                               b, params):
             # Check early stopping
@@ -467,7 +471,9 @@ def dimension_reduction_proj_solver(F, params):
                 break
 
             # Number of samples
-            total_samples += so_samples * (2 * d)
+            # total_samples += so_samples * (2 * d)
+            total_samples += total
+            print(total, so_samples * 2 * d)
             # Update set S
             S = np.concatenate((S, s), axis=1)
 
@@ -768,4 +774,4 @@ def random_walk_proj_approximator(F, Y, y_in, A_in, b_in, params, centroid=False
         y_set = y_set[:, M:]
 
         # Output
-        yield Y, y_bar[:, 0], A, b, y_set, s
+        yield Y, y_bar[:, 0], A, b, y_set, s, so["total"]

@@ -57,11 +57,12 @@ def uniform_solver(F, params):
             # Check conditions
             CI = confidence_interval(delta / 2 / T_max, params, cur_samples + i + 1)
 
-            # Condition (i)
-            if np.max(hat_F) - np.min(hat_F) > 2 * CI:
-                cur_samples += (i + 1)
-                break
+            # # Condition (i)
+            # if np.max(hat_F) - np.min(hat_F) > 2 * CI:
+            #     cur_samples += (i + 1)
+            #     break
 
+        cur_samples = num_samples
         # Condition (i)
         if np.max(hat_F) - np.min(hat_F) > 2 * CI:
             # The minimal index
@@ -90,7 +91,7 @@ def uniform_solver(F, params):
 
         # Condition (ii)
         else:
-            cur_samples = num_samples
+            # cur_samples = num_samples
             # Update total samples
             total_samples += cur_samples * math.floor(S.shape[0] / 2)
             # Update S

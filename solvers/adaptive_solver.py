@@ -43,7 +43,7 @@ def adaptive_solver(F, params):
         N_2 = math.ceil(L / 3 + 2 * U / 3)
 
         # Upper bound on samples needed
-        num_samples = required_samples(delta / 2 / T_max, eps / 8, params)
+        num_samples = required_samples(delta / 2 / T_max, eps / 6, params)
         # Empirical mean
         hat_F_1 = 0
         hat_F_2 = 0
@@ -56,17 +56,19 @@ def adaptive_solver(F, params):
             # Check conditions
             CI = confidence_interval(delta / 2 / T_max, params, i + 1)
 
-            # Condition (i)
-            if hat_F_1 - hat_F_2 > 2 * CI:
-                # Update total simulations
-                total_samples += (2 * i)
-                break
-            # Condition (ii)
-            elif hat_F_1 - hat_F_2 < -2 * CI:
-                # Update total simulations
-                total_samples += (2 * i)
-                break
+            # # Condition (i)
+            # if hat_F_1 - hat_F_2 > 2 * CI:
+            #     # Update total simulations
+            #     total_samples += (2 * i)
+            #     break
+            # # Condition (ii)
+            # elif hat_F_1 - hat_F_2 < -2 * CI:
+            #     # Update total simulations
+            #     total_samples += (2 * i)
+            #     break
 
+        # Update total simulations
+        total_samples += (2 * num_samples)
         # Condition (i)
         if hat_F_1 - hat_F_2 > 2 * CI:
             L = N_1
@@ -75,8 +77,8 @@ def adaptive_solver(F, params):
             U = N_2
         # Condition (iii)
         else:
-            # Update total simulations
-            total_samples += (2 * num_samples)
+            # # Update total simulations
+            # total_samples += (2 * num_samples)
             L, U = N_1, N_2
 
     # Solve the sub-problem
